@@ -24,6 +24,7 @@ jobs:
           --health-retries 20
     env:
       DATABASE_URL: postgresql+psycopg://practilizate:practilizate@localhost:5432/practilizate_e2e
+      E2E_DATABASE_URL: postgresql+psycopg://practilizate:practilizate@localhost:5432/practilizate_e2e
       PRACTILIZATE_SOURCE: fixtures
       PRACTILIZATE_AS_OF: "2026-10-29"
     steps:
