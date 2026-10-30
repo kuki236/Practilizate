@@ -28,7 +28,8 @@
               },
               "queryRef": "Estado.label_es",
               "nativeQueryRef": "label_es",
-              "active": true
+              "active": true,
+              "displayName": "Estado"
             }
           ]
         },
@@ -46,7 +47,8 @@
                 }
               },
               "queryRef": "Ofertas.Total Ofertas",
-              "nativeQueryRef": "Total Ofertas"
+              "nativeQueryRef": "Total Ofertas",
+              "displayName": "Ofertas"
             }
           ]
         }

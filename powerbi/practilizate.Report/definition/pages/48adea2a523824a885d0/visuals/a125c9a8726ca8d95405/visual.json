@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Ofertas.Subvención Promedio",
-              "nativeQueryRef": "Subvención Promedio"
+              "nativeQueryRef": "Subvención Promedio",
+              "displayName": "Subvención promedio"
             }
           ]
         }

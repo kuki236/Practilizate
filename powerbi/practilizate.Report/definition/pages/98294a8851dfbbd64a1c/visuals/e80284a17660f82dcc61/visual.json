@@ -28,7 +28,8 @@
               },
               "queryRef": "Carreras.career_name",
               "nativeQueryRef": "career_name",
-              "active": true
+              "active": true,
+              "displayName": "Carrera"
             }
           ]
         },
@@ -46,7 +47,8 @@
                 }
               },
               "queryRef": "Ofertas.Total Ofertas",
-              "nativeQueryRef": "Total Ofertas"
+              "nativeQueryRef": "Total Ofertas",
+              "displayName": "Ofertas"
             }
           ]
         }

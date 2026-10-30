@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Ofertas.title",
-              "nativeQueryRef": "title"
+              "nativeQueryRef": "title",
+              "displayName": "Oferta"
             },
             {
               "field": {
@@ -41,7 +42,8 @@
                 }
               },
               "queryRef": "Ofertas.company",
-              "nativeQueryRef": "company"
+              "nativeQueryRef": "company",
+              "displayName": "Empresa"
             },
             {
               "field": {
@@ -55,7 +57,8 @@
                 }
               },
               "queryRef": "Ofertas.deadline_at",
-              "nativeQueryRef": "deadline_at"
+              "nativeQueryRef": "deadline_at",
+              "displayName": "Vence"
             },
             {
               "field": {
@@ -69,7 +72,8 @@
                 }
               },
               "queryRef": "Ofertas.days_to_deadline",
-              "nativeQueryRef": "days_to_deadline"
+              "nativeQueryRef": "days_to_deadline",
+              "displayName": "Días"
             },
             {
               "field": {
@@ -83,7 +87,8 @@
                 }
               },
               "queryRef": "Estado.label_es",
-              "nativeQueryRef": "label_es"
+              "nativeQueryRef": "label_es",
+              "displayName": "Estado"
             },
             {
               "field": {
@@ -97,7 +102,8 @@
                 }
               },
               "queryRef": "Ofertas.salary_amount",
-              "nativeQueryRef": "salary_amount"
+              "nativeQueryRef": "salary_amount",
+              "displayName": "Subvención"
             }
           ]
         }

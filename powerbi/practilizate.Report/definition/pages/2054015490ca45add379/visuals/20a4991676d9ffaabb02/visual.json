@@ -28,7 +28,8 @@
               },
               "queryRef": "Calidad.rule_id",
               "nativeQueryRef": "rule_id",
-              "active": true
+              "active": true,
+              "displayName": "Regla"
             }
           ]
         },
@@ -46,7 +47,8 @@
                 }
               },
               "queryRef": "Calidad.Fallidas Totales",
-              "nativeQueryRef": "Fallidas Totales"
+              "nativeQueryRef": "Fallidas Totales",
+              "displayName": "Fallos totales"
             }
           ]
         }

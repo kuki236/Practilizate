@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Carreras.career_name",
-              "nativeQueryRef": "career_name"
+              "nativeQueryRef": "career_name",
+              "displayName": "Carrera"
             }
           ]
         }

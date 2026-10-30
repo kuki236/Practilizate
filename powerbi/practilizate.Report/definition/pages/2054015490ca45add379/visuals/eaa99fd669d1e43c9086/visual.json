@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Calidad.Fallidas Totales",
-              "nativeQueryRef": "Fallidas Totales"
+              "nativeQueryRef": "Fallidas Totales",
+              "displayName": "Fallos totales"
             }
           ]
         }

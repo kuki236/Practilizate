@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Ofertas.Por Vencer",
-              "nativeQueryRef": "Por Vencer"
+              "nativeQueryRef": "Por Vencer",
+              "displayName": "Por vencer"
             }
           ]
         }

@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Ofertas.Total Ofertas",
-              "nativeQueryRef": "Total Ofertas"
+              "nativeQueryRef": "Total Ofertas",
+              "displayName": "Ofertas"
             }
           ]
         }

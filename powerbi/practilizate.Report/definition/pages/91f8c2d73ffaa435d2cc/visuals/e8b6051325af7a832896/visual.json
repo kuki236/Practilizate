@@ -28,7 +28,8 @@
               },
               "queryRef": "Habilidades.skill",
               "nativeQueryRef": "skill",
-              "active": true
+              "active": true,
+              "displayName": "Habilidad"
             }
           ]
         },
@@ -46,7 +47,8 @@
                 }
               },
               "queryRef": "Ofertas.Total Ofertas",
-              "nativeQueryRef": "Total Ofertas"
+              "nativeQueryRef": "Total Ofertas",
+              "displayName": "Ofertas"
             }
           ]
         }

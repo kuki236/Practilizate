@@ -28,7 +28,8 @@
               },
               "queryRef": "Ofertas.company",
               "nativeQueryRef": "company",
-              "active": true
+              "active": true,
+              "displayName": "Empresa"
             }
           ]
         },
@@ -46,7 +47,8 @@
                 }
               },
               "queryRef": "Ofertas.Subvención Promedio",
-              "nativeQueryRef": "Subvención Promedio"
+              "nativeQueryRef": "Subvención Promedio",
+              "displayName": "Subvención promedio"
             }
           ]
         }

@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Calidad.Calidad General",
-              "nativeQueryRef": "Calidad General"
+              "nativeQueryRef": "Calidad General",
+              "displayName": "Calidad general"
             }
           ]
         }

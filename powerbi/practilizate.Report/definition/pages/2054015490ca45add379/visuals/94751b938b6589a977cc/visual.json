@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Calidad.rule_id",
-              "nativeQueryRef": "rule_id"
+              "nativeQueryRef": "rule_id",
+              "displayName": "Regla"
             },
             {
               "field": {
@@ -41,7 +42,8 @@
                 }
               },
               "queryRef": "Calidad.description_es",
-              "nativeQueryRef": "description_es"
+              "nativeQueryRef": "description_es",
+              "displayName": "Descripción"
             },
             {
               "field": {
@@ -55,7 +57,8 @@
                 }
               },
               "queryRef": "Calidad.severity_es",
-              "nativeQueryRef": "severity_es"
+              "nativeQueryRef": "severity_es",
+              "displayName": "Severidad"
             },
             {
               "field": {
@@ -69,7 +72,8 @@
                 }
               },
               "queryRef": "Calidad.checked",
-              "nativeQueryRef": "checked"
+              "nativeQueryRef": "checked",
+              "displayName": "Revisadas"
             },
             {
               "field": {
@@ -83,7 +87,8 @@
                 }
               },
               "queryRef": "Calidad.failed",
-              "nativeQueryRef": "failed"
+              "nativeQueryRef": "failed",
+              "displayName": "Fallidas"
             },
             {
               "field": {
@@ -97,7 +102,8 @@
                 }
               },
               "queryRef": "Calidad.pass_rate",
-              "nativeQueryRef": "pass_rate"
+              "nativeQueryRef": "pass_rate",
+              "displayName": "Tasa de aprobación"
             },
             {
               "field": {
@@ -111,7 +117,8 @@
                 }
               },
               "queryRef": "Calidad.sample_failed_offer_ids",
-              "nativeQueryRef": "sample_failed_offer_ids"
+              "nativeQueryRef": "sample_failed_offer_ids",
+              "displayName": "Ejemplos"
             }
           ]
         }

@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Ofertas.Habilidades",
-              "nativeQueryRef": "Habilidades"
+              "nativeQueryRef": "Habilidades",
+              "displayName": "Habilidades"
             }
           ]
         }

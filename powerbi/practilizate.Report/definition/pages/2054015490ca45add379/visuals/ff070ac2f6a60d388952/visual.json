@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Calidad.Reglas Fallidas",
-              "nativeQueryRef": "Reglas Fallidas"
+              "nativeQueryRef": "Reglas Fallidas",
+              "displayName": "Reglas fallidas"
             }
           ]
         }

@@ -1590,6 +1590,38 @@ def normalize_visuals() -> None:
                 "filterConfig", {"filters": [topn_filter("Carreras", "career_name", 10)]}
             )
 
+        display_names = {
+            "Ofertas.title": "Oferta",
+            "Ofertas.company": "Empresa",
+            "Ofertas.deadline_at": "Vence",
+            "Ofertas.days_to_deadline": "Días",
+            "Estado.label_es": "Estado",
+            "Ofertas.salary_amount": "Subvención",
+            "Calidad.rule_id": "Regla",
+            "Calidad.description_es": "Descripción",
+            "Calidad.severity_es": "Severidad",
+            "Calidad.checked": "Revisadas",
+            "Calidad.failed": "Fallidas",
+            "Calidad.pass_rate": "Tasa de aprobación",
+            "Calidad.sample_failed_offer_ids": "Ejemplos",
+            "Carreras.career_name": "Carrera",
+            "Habilidades.skill": "Habilidad",
+            "Ofertas.Total Ofertas": "Ofertas",
+            "Ofertas.Habilidades": "Habilidades",
+            "Ofertas.Subvención Promedio": "Subvención promedio",
+            "Ofertas.Por Vencer": "Por vencer",
+            "Ofertas.Vencidas": "Vencidas",
+            "Ofertas.Días Promedio para Vencer": "Días promedio",
+            "Calidad.Calidad General": "Calidad general",
+            "Calidad.Reglas Fallidas": "Reglas fallidas",
+            "Calidad.Fallidas Totales": "Fallos totales",
+        }
+        for state in visual.get("visual", {}).get("query", {}).get("queryState", {}).values():
+            for projection in state.get("projections", []):
+                label = display_names.get(projection.get("queryRef", ""))
+                if label:
+                    projection["displayName"] = label
+
         for index, filter_definition in enumerate(
             visual.get("filterConfig", {}).get("filters", [])
         ):

@@ -28,7 +28,8 @@
               },
               "queryRef": "Ofertas.company",
               "nativeQueryRef": "company",
-              "active": true
+              "active": true,
+              "displayName": "Empresa"
             }
           ]
         },
@@ -46,7 +47,8 @@
                 }
               },
               "queryRef": "Ofertas.Total Ofertas",
-              "nativeQueryRef": "Total Ofertas"
+              "nativeQueryRef": "Total Ofertas",
+              "displayName": "Ofertas"
             }
           ]
         }

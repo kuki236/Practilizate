@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Ofertas.Días Promedio para Vencer",
-              "nativeQueryRef": "Días Promedio para Vencer"
+              "nativeQueryRef": "Días Promedio para Vencer",
+              "displayName": "Días promedio"
             }
           ]
         }

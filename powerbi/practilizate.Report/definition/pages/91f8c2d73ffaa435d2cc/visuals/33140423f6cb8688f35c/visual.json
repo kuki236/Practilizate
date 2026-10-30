@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Carreras.career_name",
-              "nativeQueryRef": "career_name"
+              "nativeQueryRef": "career_name",
+              "displayName": "Carrera"
             },
             {
               "field": {
@@ -41,7 +42,8 @@
                 }
               },
               "queryRef": "Ofertas.Habilidades",
-              "nativeQueryRef": "Habilidades"
+              "nativeQueryRef": "Habilidades",
+              "displayName": "Habilidades"
             },
             {
               "field": {
@@ -55,7 +57,8 @@
                 }
               },
               "queryRef": "Ofertas.Total Ofertas",
-              "nativeQueryRef": "Total Ofertas"
+              "nativeQueryRef": "Total Ofertas",
+              "displayName": "Ofertas"
             }
           ]
         }

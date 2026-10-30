@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Ofertas.Vencidas",
-              "nativeQueryRef": "Vencidas"
+              "nativeQueryRef": "Vencidas",
+              "displayName": "Vencidas"
             }
           ]
         }

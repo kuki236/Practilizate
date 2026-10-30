@@ -26,3 +26,4 @@ artifacts/latest.json
 artifacts/*
 !artifacts/e2e/
 !artifacts/e2e/.gitkeep
+*.pbix
