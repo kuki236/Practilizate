@@ -72,6 +72,7 @@ class Offer(BaseModel):
     published_at: date | None = None
     deadline_at: date | None = None
     status: str = "unknown"
+    quality_score: float = 1.0
     careers: list[Career] = Field(default_factory=list)
     skills: list[str] = Field(default_factory=list)
     requirements_text: str = ""

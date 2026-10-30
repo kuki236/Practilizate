@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from practilizate.ids import stable_hex
+from practilizate.ids import offer_external_id
 from practilizate.models import Career, DetailData, ListingCard, Offer
 from practilizate.parsing import canonical_attendance, canonical_modality, parse_date_value
 from practilizate.skills import extract_skills
@@ -75,7 +75,7 @@ def build_offer(
     skill_source = " ".join(part for part in (card.requirements or "", data.skills_text) if part)
 
     return Offer(
-        offer_id=stable_hex(url),
+        offer_id=offer_external_id(url),
         url=url,
         title=title,
         company=company,

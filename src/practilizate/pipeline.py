@@ -12,6 +12,7 @@ from practilizate.fetch import FetchError, LiveSource
 from practilizate.ingest import ingest_offers
 from practilizate.logging import get_logger
 from practilizate.models import IngestResult
+from practilizate.quality import evaluate_quality
 from practilizate.sources import FixtureSource, OfferSource, SourceError
 
 LOGGER = get_logger("practilizate.pipeline")
@@ -151,8 +152,25 @@ def run_command(settings: Settings, args, run_dir: Path) -> int:
     started = time.perf_counter()
     started_at = datetime.now(UTC)
     result = _ingest(settings, args)
+    evaluation = evaluate_quality(
+        result.offers,
+        run_id=run_id,
+        source=result.source,
+        as_of=result.as_of,
+        salary_min=settings.salary_min,
+        salary_max=settings.salary_max,
+    )
+    for offer in result.offers:
+        offer.quality_score = evaluation.scores.get(offer.offer_id, 1.0)
+
     _write_ingest_report(run_dir / "ingest_report.json", run_id, result)
+    write_json(run_dir / "quality_report.json", evaluation.report)
     _write_normalized(run_dir / "normalized_offers.json", result)
+
+    strict_failure = bool(getattr(args, "strict", False)) and any(
+        rule.failed > 0 for rule in evaluation.report.rules
+    )
+    status = "failed_quality" if not evaluation.report.passed or strict_failure else "qualified"
     runtime = round(time.perf_counter() - started, 3)
     manifest = {
         "run_id": run_id,
@@ -161,7 +179,14 @@ def run_command(settings: Settings, args, run_dir: Path) -> int:
         "started_at": started_at.isoformat(timespec="seconds"),
         "finished_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "runtime_seconds": runtime,
-        "status": "ingested",
+        "status": status,
+        "quality": {
+            "overall_score": evaluation.report.overall_score,
+            "passed": evaluation.report.passed,
+            "strict": bool(getattr(args, "strict", False)),
+            "critical_failures": evaluation.report.critical_failures,
+            "failed_rules": [rule.rule_id for rule in evaluation.report.rules if rule.failed > 0],
+        },
         "counts": {
             "offers": result.stats.unique_offers,
             "careers": result.stats.careers,
@@ -174,22 +199,27 @@ def run_command(settings: Settings, args, run_dir: Path) -> int:
         "artifacts": {
             "normalized": "normalized_offers.json",
             "ingest_report": "ingest_report.json",
+            "quality_report": "quality_report.json",
         },
     }
     write_json(run_dir / "run_manifest.json", manifest)
-    settings.artifacts_dir.mkdir(parents=True, exist_ok=True)
-    write_json(settings.artifacts_dir / "latest.json", {"run_id": run_id, "path": str(run_dir)})
+    if getattr(args, "artifacts_dir", None) is None:
+        settings.artifacts_dir.mkdir(parents=True, exist_ok=True)
+        write_json(settings.artifacts_dir / "latest.json", {"run_id": run_id, "path": str(run_dir)})
     LOGGER.info(
-        "run command ingested offers",
+        "run command finished",
         extra={
             "run_id": run_id,
             "offers": result.stats.unique_offers,
             "duplicates": result.stats.duplicate_refs,
+            "quality_score": evaluation.report.overall_score,
+            "critical_failures": evaluation.report.critical_failures,
+            "status": status,
             "runtime_seconds": runtime,
             "artifacts": str(run_dir),
         },
     )
-    return 0
+    return 0 if status == "qualified" else 1
 
 
 def quality_command(settings: Settings, args) -> int:

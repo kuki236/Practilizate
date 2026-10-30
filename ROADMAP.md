@@ -51,10 +51,10 @@ Work through the checkpoints in order. After each checkpoint, run E2E, update th
 
 ## CP4 — Data quality
 
-- [ ] Implement the quality rules from `SPECS.md`.
-- [ ] Generate `quality_report.json` with counts, samples, and overall score.
-- [ ] Fail the run when critical rules fail.
-- [ ] Add E2E assertions for expected quality failures.
+- [x] Implement the quality rules from `SPECS.md`.
+- [x] Generate `quality_report.json` with counts, samples, and overall score.
+- [x] Fail the run when critical rules fail.
+- [x] Add E2E assertions for expected quality failures.
 
 **Acceptance:** quality report identifies the expected fixture failures and passes the rest.
 

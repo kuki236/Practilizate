@@ -86,3 +86,28 @@ def e2e_run() -> Path:
 @pytest.fixture(scope="session")
 def e2e_database_url() -> str:
     return E2E_DATABASE_URL
+
+
+@pytest.fixture(scope="session")
+def e2e_strict_run(e2e_run: Path) -> Path:
+    strict_dir = e2e_run / "strict"
+    strict_dir.mkdir(parents=True, exist_ok=True)
+    result = run_cli(
+        "run",
+        "--source",
+        "fixtures",
+        "--as-of",
+        "2026-10-29",
+        "--run-id",
+        "e2e-strict",
+        "--artifacts-dir",
+        str(strict_dir),
+        "--output-dir",
+        str(strict_dir),
+        "--strict",
+        database_url=E2E_DATABASE_URL,
+    )
+    assert result.returncode == 1, (
+        f"strict run should fail on warnings:\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+    )
+    return strict_dir

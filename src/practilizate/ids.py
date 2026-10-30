@@ -1,5 +1,15 @@
 import hashlib
+import re
 from datetime import date
+
+OFFER_SUFFIX_RE = re.compile(r"-(\d+)(?:\.html?)?$")
+
+
+def offer_external_id(url: str) -> str:
+    match = OFFER_SUFFIX_RE.search(url)
+    if match:
+        return match.group(1)
+    return stable_hex(url)
 
 
 def stable_hex(value: str, length: int = 16) -> str:
