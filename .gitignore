@@ -20,3 +20,6 @@ powerbi/**/.pbi/
 powerbi/**/*.pbix.tmp
 .DS_Store
 Thumbs.db
+
+artifacts/runs/
+artifacts/latest.json

@@ -50,6 +50,7 @@ class DetailData(BaseModel):
     deadline_at: date | None = None
     deadline_raw: str | None = None
     requirements_text: str = ""
+    skills_text: str = ""
 
 
 class Offer(BaseModel):

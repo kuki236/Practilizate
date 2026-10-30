@@ -4,10 +4,9 @@ from pathlib import Path
 from typing import Protocol
 from urllib.parse import urlparse
 
-from bs4 import BeautifulSoup
-
 from practilizate.logging import get_logger
 from practilizate.models import Career, DetailPage, Page
+from practilizate.parsing import parse_careers
 
 LOGGER = get_logger("practilizate.sources")
 
@@ -24,18 +23,6 @@ class OfferSource(Protocol):
     def iter_pages(self, career: Career) -> Iterator[Page]: ...
 
     def fetch_detail(self, url: str) -> DetailPage: ...
-
-
-def parse_careers(html: str) -> list[Career]:
-    soup = BeautifulSoup(html, "html.parser")
-    careers: dict[str, Career] = {}
-    for field in soup.select('input[name="carrera"]'):
-        career_id = (field.get("value") or "").strip()
-        name = (field.get("data-nombre") or "").strip()
-        if not career_id or not name or career_id in careers:
-            continue
-        careers[career_id] = Career(id=career_id, name=name)
-    return list(careers.values())
 
 
 class FixtureSource:

@@ -70,7 +70,7 @@ career queries and must be stored once with two career links.
 - `dim_empresa`: 10 rows (two offers share Banco Andino; one company missing).
 - `dim_ubicacion`: 8 rows (offers share districts; one missing location).
 - `bridge_oferta_carrera`: 13 rows.
-- `bridge_oferta_habilidad`: 30 rows (varies with the lexicon; asserted as ≥ 20).
+- `bridge_oferta_habilidad`: 34 rows with the current lexicon.
 - Duplicate URL 90001 is not duplicated.
 
 ## Expected statuses (as of 2026-10-29)

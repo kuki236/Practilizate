@@ -40,10 +40,10 @@ Work through the checkpoints in order. After each checkpoint, run E2E, update th
 
 ## CP3 — Ingestion and normalization
 
-- [ ] Implement live ingestion with cache, rate limit, and career pagination.
-- [ ] Implement fixture ingestion.
-- [ ] Normalize company, location, modality, attendance, salary, dates, careers, and skills.
-- [ ] Deduplicate offers by URL and preserve multi-career links.
+- [x] Implement live ingestion with cache, rate limit, and career pagination.
+- [x] Implement fixture ingestion.
+- [x] Normalize company, location, modality, attendance, salary, dates, careers, and skills.
+- [x] Deduplicate offers by URL and preserve multi-career links.
 
 **Acceptance:** fixture run produces the expected normalized records and career associations.
 

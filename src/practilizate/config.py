@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     )
 
     database_url: str = Field(
-        default="postgresql+psycopg://practilizate:practilizate@localhost:5432/practilizate",
+        default="postgresql+psycopg://practilizate:practilizate@localhost:5433/practilizate",
         validation_alias=AliasChoices("DATABASE_URL", "PRACTILIZATE_DATABASE_URL"),
     )
     source: Literal["fixtures", "live"] = "fixtures"
