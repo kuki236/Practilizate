@@ -29,10 +29,10 @@ Work through the checkpoints in order. After each checkpoint, run E2E, update th
 
 ## CP2 — Failure modes and fixtures
 
-- [ ] Write `docs/failure-modes.md` before implementing parsing or quality logic.
-- [ ] Add multi-career fixtures with the medium-hard cases from `SPECS.md`.
-- [ ] Add a fixture loader and deterministic `--as-of` date.
-- [ ] Document expected fixture outcomes.
+- [x] Write `docs/failure-modes.md` before implementing parsing or quality logic.
+- [x] Add multi-career fixtures with the medium-hard cases from `SPECS.md`.
+- [x] Add a fixture loader and deterministic `--as-of` date.
+- [x] Document expected fixture outcomes.
 
 **Acceptance:** fixtures cover duplicates, multi-career, missing salary, invalid dates, outliers, missing company, no deadline, and multiple skills.
 
