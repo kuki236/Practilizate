@@ -111,3 +111,10 @@ def e2e_strict_run(e2e_run: Path) -> Path:
         f"strict run should fail on warnings:\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
     )
     return strict_dir
+
+
+@pytest.fixture(scope="session")
+def e2e_db(e2e_run: Path, e2e_database_url: str):
+    engine = create_engine(e2e_database_url)
+    yield engine
+    engine.dispose()

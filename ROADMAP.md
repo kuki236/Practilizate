@@ -62,10 +62,10 @@ Work through the checkpoints in order. After each checkpoint, run E2E, update th
 
 ## CP5 — PostgreSQL star schema
 
-- [ ] Create schema and migrations.
-- [ ] Load dimensions, facts, and bridge tables.
-- [ ] Add indexes and a dashboard view.
-- [ ] Add E2E database assertions.
+- [x] Create schema and migrations.
+- [x] Load dimensions, facts, and bridge tables.
+- [x] Add indexes and a dashboard view.
+- [x] Add E2E database assertions.
 
 **Acceptance:** expected rows exist in `fact_ofertas`, dimensions, and bridge tables; duplicate URLs are not duplicated.
 

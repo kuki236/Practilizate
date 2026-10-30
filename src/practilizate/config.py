@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     artifacts_dir: Path = Path("artifacts")
     fixtures_dir: Path = Path("data/fixtures")
     cache_dir: Path = Path("data/raw/cache")
+    sql_dir: Path = Path("sql")
     log_level: str = "INFO"
     max_pages_per_career: int = 50
     request_timeout_seconds: float = 30.0

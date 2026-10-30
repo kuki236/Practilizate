@@ -8,10 +8,11 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from practilizate.config import Settings
+from practilizate.db import load_offers
 from practilizate.fetch import FetchError, LiveSource
 from practilizate.ingest import ingest_offers
 from practilizate.logging import get_logger
-from practilizate.models import IngestResult
+from practilizate.models import IngestResult, Offer
 from practilizate.quality import evaluate_quality
 from practilizate.sources import FixtureSource, OfferSource, SourceError
 
@@ -117,10 +118,11 @@ def _write_ingest_report(path: Path, run_id: str, result: IngestResult) -> None:
     )
 
 
-def _write_normalized(path: Path, result: IngestResult) -> None:
+def _write_normalized(path: Path, result: IngestResult, run_id: str) -> None:
     write_json(
         path,
         {
+            "run_id": run_id,
             "source": result.source,
             "as_of": result.as_of,
             "offers": [offer.model_dump(mode="json") for offer in result.offers],
@@ -146,6 +148,17 @@ def ingest_command(settings: Settings, args, run_dir: Path) -> int:
     return 0
 
 
+def _load_into_db(
+    settings: Settings, run_id: str, run_dir: Path, offers: list[Offer]
+) -> dict[str, int]:
+    result = load_offers(offers, settings.database_url, settings.sql_dir)
+    write_json(
+        run_dir / "database_load.json",
+        {"run_id": run_id, "counts": result.counts},
+    )
+    return result.counts
+
+
 def run_command(settings: Settings, args, run_dir: Path) -> int:
     run_id = validate_run_id(args.run_id or run_dir.name)
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -165,12 +178,32 @@ def run_command(settings: Settings, args, run_dir: Path) -> int:
 
     _write_ingest_report(run_dir / "ingest_report.json", run_id, result)
     write_json(run_dir / "quality_report.json", evaluation.report)
-    _write_normalized(run_dir / "normalized_offers.json", result)
+    _write_normalized(run_dir / "normalized_offers.json", result, run_id)
 
     strict_failure = bool(getattr(args, "strict", False)) and any(
         rule.failed > 0 for rule in evaluation.report.rules
     )
     status = "failed_quality" if not evaluation.report.passed or strict_failure else "qualified"
+    stages: dict[str, object] = {"ingest": result.stats.model_dump(mode="json")}
+    artifacts = {
+        "normalized": "normalized_offers.json",
+        "ingest_report": "ingest_report.json",
+        "quality_report": "quality_report.json",
+    }
+
+    if status == "qualified":
+        if getattr(args, "skip_db", False):
+            status = "qualified_no_db"
+        else:
+            try:
+                stages["load"] = _load_into_db(settings, run_id, run_dir, result.offers)
+                artifacts["database_load"] = "database_load.json"
+                status = "completed"
+            except Exception as error:
+                LOGGER.exception("database load failed", extra={"run_id": run_id})
+                stages["load"] = {"status": "failed", "error_type": type(error).__name__}
+                status = "failed_load"
+
     runtime = round(time.perf_counter() - started, 3)
     manifest = {
         "run_id": run_id,
@@ -195,12 +228,8 @@ def run_command(settings: Settings, args, run_dir: Path) -> int:
             "duplicates": result.stats.duplicate_refs,
             "detail_failures": len(result.stats.detail_failures),
         },
-        "stages": {"ingest": result.stats.model_dump(mode="json")},
-        "artifacts": {
-            "normalized": "normalized_offers.json",
-            "ingest_report": "ingest_report.json",
-            "quality_report": "quality_report.json",
-        },
+        "stages": stages,
+        "artifacts": artifacts,
     }
     write_json(run_dir / "run_manifest.json", manifest)
     if getattr(args, "artifacts_dir", None) is None:
@@ -219,7 +248,7 @@ def run_command(settings: Settings, args, run_dir: Path) -> int:
             "artifacts": str(run_dir),
         },
     )
-    return 0 if status == "qualified" else 1
+    return 0 if status in {"completed", "qualified_no_db"} else 1
 
 
 def quality_command(settings: Settings, args) -> int:
@@ -230,7 +259,13 @@ def quality_command(settings: Settings, args) -> int:
 
 
 def load_command(settings: Settings, args) -> int:
-    raise PipelineError("load is available after the star-schema checkpoint")
+    run_dir = resolve_run_dir(settings, args)
+    payload = read_json(run_dir / "normalized_offers.json")
+    offers = [Offer.model_validate(item) for item in payload["offers"]]
+    run_id = validate_run_id(str(payload.get("run_id") or run_dir.name))
+    counts = _load_into_db(settings, run_id, run_dir, offers)
+    sys.stdout.write(json.dumps(counts, ensure_ascii=False, indent=2) + "\n")
+    return 0
 
 
 def export_command(settings: Settings, args) -> int:

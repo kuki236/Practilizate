@@ -99,3 +99,116 @@ def test_strict_mode_blocks_warning_only_runs(e2e_strict_run: Path) -> None:
     assert manifest["quality"]["failed_rules"]
     report = load_json(e2e_strict_run / "quality_report.json")
     assert report["passed"] is True
+
+
+def test_database_contains_expected_star_schema_rows(e2e_run: Path, e2e_db) -> None:
+    from sqlalchemy import text
+
+    expected = {
+        "fact_ofertas": 12,
+        "dim_fecha": 20,
+        "dim_empresa": 10,
+        "dim_ubicacion": 8,
+        "dim_carrera": 3,
+        "dim_habilidad": 21,
+        "dim_modalidad": 1,
+        "dim_asistencia": 3,
+        "bridge_oferta_carrera": 13,
+        "bridge_oferta_habilidad": 34,
+    }
+    with e2e_db.connect() as connection:
+        for table, count in expected.items():
+            actual = connection.execute(text(f"select count(*) from {table}")).scalar_one()
+            assert actual == count, table
+
+        duplicate_urls = connection.execute(
+            text(
+                "select count(*) from (select url from fact_ofertas group by url having count(*) > 1) d"
+            )
+        ).scalar_one()
+        assert duplicate_urls == 0
+
+        multi_career = connection.execute(
+            text("select count(*) from bridge_oferta_carrera where offer_id = 90001")
+        ).scalar_one()
+        assert multi_career == 2
+
+        snapshot = connection.execute(
+            text(
+                "select title, company_id, location_id, date_id, salary_amount, deadline_at, "
+                "status, quality_score, url from fact_ofertas where offer_id = :id"
+            ),
+            {"id": 90006},
+        ).one()
+        assert snapshot.company_id is None
+        assert snapshot.status == "active"
+        assert 0 < float(snapshot.quality_score) < 1
+
+        expired = connection.execute(
+            text("select status, deadline_at from fact_ofertas where offer_id = 90008")
+        ).one()
+        assert expired.status == "expired"
+
+        invalid_date = connection.execute(
+            text("select date_id, published_at from fact_ofertas where offer_id = 90004")
+        ).one()
+        assert invalid_date.date_id is None
+        assert invalid_date.published_at is None
+
+        view_rows = connection.execute(
+            text(
+                "select offer_id, company, careers, skills from v_dashboard_ofertas "
+                "where offer_id = 90001"
+            )
+        ).one()
+        assert view_rows.company == "Banco Andino"
+        assert view_rows.careers.count(";") == 1
+        assert view_rows.skills.count(";") == 4
+
+        schema_version = connection.execute(
+            text("select value from practilizate_meta where key = 'schema_version'")
+        ).scalar_one()
+        assert schema_version == "1"
+
+        view_count = connection.execute(
+            text("select count(*) from v_dashboard_ofertas")
+        ).scalar_one()
+        assert view_count == 12
+
+        load_report = load_json(e2e_run / "database_load.json")
+        assert load_report["counts"]["fact_ofertas"] == 12
+
+
+def test_load_command_is_repeatable(e2e_run: Path, e2e_db, e2e_database_url: str) -> None:
+    from conftest import run_cli
+    from sqlalchemy import text
+
+    result = run_cli(
+        "load",
+        "--run-id",
+        "e2e",
+        "--artifacts-dir",
+        str(e2e_run),
+        database_url=e2e_database_url,
+    )
+    assert result.returncode == 0, result.stderr
+    counts = json.loads(result.stdout)
+    assert counts["fact_ofertas"] == 12
+    assert counts["bridge_oferta_carrera"] == 13
+
+    with e2e_db.connect() as connection:
+        assert connection.execute(text("select count(*) from fact_ofertas")).scalar_one() == 12
+        assert (
+            connection.execute(text("select count(*) from bridge_oferta_habilidad")).scalar_one()
+            == 34
+        )
+
+
+def test_quality_command_prints_report(e2e_run: Path) -> None:
+    from conftest import run_cli
+
+    result = run_cli("quality", "--run-id", "e2e", "--artifacts-dir", str(e2e_run))
+    assert result.returncode == 0, result.stderr
+    report = json.loads(result.stdout)
+    assert report["overall_score"] == 0.9427
+    assert report["passed"] is True
