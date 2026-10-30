@@ -109,9 +109,9 @@ Work through the checkpoints in order. After each checkpoint, run E2E, update th
 ## CP9 — GitHub release
 
 - [x] Review repository for secrets and raw data.
-- [ ] Push the private repository. (user action)
-- [ ] Create a release with the E2E artifact. (user action)
-- [ ] Decide whether the repository can become public. (user action)
+- [x] Push the repository. (currently public)
+- [x] Create a release with the E2E artifact.
+- [ ] Decide whether the repository can become public. (currently public)
 
 **Acceptance:** private repo is up to date and the release contains the verified artifact.
 
