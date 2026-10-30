@@ -1,0 +1,44 @@
+/// Etiquetas bilingües del estado de una oferta.
+table Estado
+	lineageTag: 7dd5b527-eb26-4569-99b9-3550ccb34b5a
+
+	/// Etiqueta del estado según el idioma seleccionado.
+	measure 'Etiqueta Estado' = SWITCH(SELECTEDVALUE('Idioma'[Idioma], "ES"), "ES", SELECTEDVALUE('Estado'[label_es]), "EN", SELECTEDVALUE('Estado'[label_en]))
+		displayFolder: Idioma
+		lineageTag: 76e585ca-16e0-4ca1-911b-df84b3786a6f
+
+	column status
+		dataType: string
+		isHidden
+		lineageTag: 97ef8699-9d10-45d8-9d08-fec140b4d2f9
+		summarizeBy: none
+		sourceColumn: status
+
+	column label_es
+		dataType: string
+		lineageTag: f484870d-e93f-4a71-8be8-decf1dfe8097
+		summarizeBy: none
+		sourceColumn: label_es
+
+	column label_en
+		dataType: string
+		lineageTag: c1018069-566f-4050-ae51-56f09566bf67
+		summarizeBy: none
+		sourceColumn: label_en
+
+	column orden
+		dataType: int64
+		lineageTag: 08a8ec97-386b-49f1-8d40-4fe12a3008a6
+		summarizeBy: none
+		sourceColumn: orden
+
+	partition Estado = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "\dim_estado.csv"),[Delimiter=",",Encoding=65001,QuoteStyle=QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source,[PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Promoted,{{"status", type text}, {"label_es", type text}, {"label_en", type text}, {"orden", Int64.Type}})
+				in
+				    Typed
+

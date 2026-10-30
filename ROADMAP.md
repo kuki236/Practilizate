@@ -84,11 +84,11 @@ Work through the checkpoints in order. After each checkpoint, run E2E, update th
 
 ## CP7 — Power BI report
 
-- [ ] Create `powerbi/practilizate.pbip` using the CSV snapshot.
-- [ ] Add executive summary, skills, companies/salaries, deadlines, and quality pages.
-- [ ] Add ES/EN toggle with `dim_idioma` and DAX `SWITCH`.
-- [ ] Add accessible colors, alt text, and source footer.
-- [ ] Capture screenshots in `docs/assets/`.
+- [x] Create `powerbi/practilizate.pbip` using the CSV snapshot.
+- [x] Add executive summary, skills, companies/salaries, deadlines, and quality pages.
+- [x] Add ES/EN toggle with `dim_idioma` and DAX `SWITCH`.
+- [x] Add accessible colors, alt text, and source footer.
+- [x] Capture screenshots in `docs/assets/`.
 
 **Acceptance:** `.pbip` opens, both languages work, screenshots exist, and the report uses the exported dataset.
 

@@ -1,0 +1,113 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 852.35550764216168,
+            "y": 221.08683639685324
+          },
+          "nodeIndex": "Calidad",
+          "nodeLineageTag": "0882c369-d3a4-46aa-8aa3-b369e070f64c",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 618.35550764216157,
+            "y": 540.17367279370649
+          },
+          "nodeIndex": "Carreras",
+          "nodeLineageTag": "ddc391da-6f83-4982-be09-9f1c418be17a",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 364.12944721003151,
+            "y": -50
+          },
+          "nodeIndex": "Estado",
+          "nodeLineageTag": "7dd5b527-eb26-4569-99b9-3550ccb34b5a",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 380.37570456373652
+          },
+          "nodeIndex": "Habilidades",
+          "nodeLineageTag": "1ed9336a-6e56-4b8a-befc-ae81744c74c7",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1136.3555076421617,
+            "y": 283.08683639685324
+          },
+          "nodeIndex": "Idioma",
+          "nodeLineageTag": "eea803aa-295a-4b2d-a5b3-38946bb14853",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1420.3555076421617,
+            "y": 221.08683639685324
+          },
+          "nodeIndex": "Metadatos",
+          "nodeLineageTag": "c9d04d3d-5d41-4222-af5d-1cce6d0bdd75",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 334.19999172040559,
+            "y": 200.21302832538811
+          },
+          "nodeIndex": "Ofertas",
+          "nodeLineageTag": "077e5c14-d274-49fe-885e-12b1efc79a25",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Todas las tablas",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Todas las tablas",
+  "defaultDiagram": "Todas las tablas"
+}

@@ -1,0 +1,14 @@
+relationship CarrerasToOfertas
+	crossFilteringBehavior: bothDirections
+	fromColumn: Carreras.offer_id
+	toColumn: Ofertas.offer_id
+
+relationship HabilidadesToOfertas
+	crossFilteringBehavior: bothDirections
+	fromColumn: Habilidades.offer_id
+	toColumn: Ofertas.offer_id
+
+relationship OfertasToEstado
+	fromColumn: Ofertas.status
+	toColumn: Estado.status
+

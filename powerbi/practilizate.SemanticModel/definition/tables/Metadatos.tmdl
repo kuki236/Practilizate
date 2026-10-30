@@ -1,0 +1,102 @@
+/// Metadatos del run que alimenta el snapshot.
+table Metadatos
+	lineageTag: c9d04d3d-5d41-4222-af5d-1cce6d0bdd75
+
+	/// Fecha de corte del snapshot.
+	measure 'Última Actualización' = MAX('Metadatos'[as_of])
+		formatString: dd/mm/yyyy
+		displayFolder: Metadatos
+		lineageTag: dbbfd487-9c15-46da-b37e-67f257e71f4b
+
+	column run_id
+		dataType: string
+		lineageTag: 78b99ccb-c45b-4a15-9e5a-637e047be66c
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column source
+		dataType: string
+		lineageTag: 052a2748-ce6e-4b9c-a770-6cae2b347608
+		summarizeBy: none
+		sourceColumn: source
+
+	column as_of
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: b4583c00-3dc6-4aa5-b1b1-9ab48907a26f
+		summarizeBy: none
+		sourceColumn: as_of
+
+	column generated_at
+		dataType: string
+		isHidden
+		lineageTag: 68b89a8f-d015-4f36-87aa-737ee73a8cc6
+		summarizeBy: none
+		sourceColumn: generated_at
+
+	column runtime_seconds
+		dataType: double
+		lineageTag: eda02eca-ddf9-4992-a8f2-2996c6cc4e1a
+		summarizeBy: none
+		sourceColumn: runtime_seconds
+
+	column offers
+		dataType: int64
+		lineageTag: 187f9c57-72b0-4063-9047-94b2643ab6aa
+		summarizeBy: none
+		sourceColumn: offers
+
+	column companies
+		dataType: int64
+		lineageTag: f8791a47-4564-4cbb-b07e-e3c60c5332a5
+		summarizeBy: none
+		sourceColumn: companies
+
+	column careers
+		dataType: int64
+		lineageTag: 67a9f7e1-6cec-4261-900f-b8a86c3f4269
+		summarizeBy: none
+		sourceColumn: careers
+
+	column skills
+		dataType: int64
+		lineageTag: 6ca0d82a-b066-4283-ab6e-9688386c22c1
+		summarizeBy: none
+		sourceColumn: skills
+
+	column quality_score
+		dataType: double
+		formatString: 0.0%
+		lineageTag: ea3eba37-e523-4ddb-ac9b-507a644708bb
+		summarizeBy: none
+		sourceColumn: quality_score
+
+	column expiring
+		dataType: int64
+		lineageTag: 1610ee28-1708-43dd-90a4-9302acc22644
+		summarizeBy: none
+		sourceColumn: expiring
+
+	column salary_average
+		dataType: double
+		formatString: "S/ "#,0.00
+		lineageTag: 6d19bbb9-ff8d-427b-9532-2877235e6fec
+		summarizeBy: none
+		sourceColumn: salary_average
+
+	column last_updated
+		dataType: string
+		lineageTag: 9c3eb821-39b6-497c-b2cc-cc6a1e33a155
+		summarizeBy: none
+		sourceColumn: last_updated
+
+	partition Metadatos = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "\run_metadata.csv"),[Delimiter=",",Encoding=65001,QuoteStyle=QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source,[PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Promoted,{{"run_id", type text}, {"source", type text}, {"as_of", type date}, {"generated_at", type text}, {"runtime_seconds", type number}, {"offers", Int64.Type}, {"companies", Int64.Type}, {"careers", Int64.Type}, {"skills", Int64.Type}, {"quality_score", type number}, {"expiring", Int64.Type}, {"salary_average", type number}, {"last_updated", type text}})
+				in
+				    Typed
+

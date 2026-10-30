@@ -1,0 +1,27 @@
+/// Puente oferta-habilidad.
+table Habilidades
+	lineageTag: 1ed9336a-6e56-4b8a-befc-ae81744c74c7
+
+	column offer_id
+		dataType: string
+		isHidden
+		lineageTag: 41cf886c-1a7c-4842-bf20-da8072a42ac5
+		summarizeBy: none
+		sourceColumn: offer_id
+
+	column skill
+		dataType: string
+		lineageTag: b1891825-f9dc-4166-bfa6-c98cda630110
+		summarizeBy: none
+		sourceColumn: skill
+
+	partition Habilidades = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "\offer_skills.csv"),[Delimiter=",",Encoding=65001,QuoteStyle=QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source,[PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Promoted,{{"offer_id", type text}, {"skill", type text}})
+				in
+				    Typed
+

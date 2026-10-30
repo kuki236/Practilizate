@@ -1,3 +1,5 @@
+import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -34,6 +36,26 @@ def _reset_public_schema(database_url: str) -> None:
         connection.execute(text("drop schema if exists public cascade"))
         connection.execute(text("create schema public"))
     engine.dispose()
+
+
+def _write_checksums(directory: Path) -> None:
+    entries = []
+    for path in sorted(directory.iterdir()):
+        if not path.is_file() or path.name in {"checksums.sha256", "run_manifest.json"}:
+            continue
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        entries.append(f"{digest}  {path.name}")
+    checksum_path = directory / "checksums.sha256"
+    checksum_path.write_text("\n".join(entries) + "\n", encoding="utf-8", newline="\n")
+    manifest_path = directory / "run_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest.setdefault("artifacts", {})["checksums"] = "checksums.sha256"
+    manifest["checksum_count"] = len(entries)
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+        newline="\n",
+    )
 
 
 def run_cli(*args: str, database_url: str | None = None) -> subprocess.CompletedProcess[str]:
@@ -80,6 +102,7 @@ def e2e_run() -> Path:
         raise AssertionError(
             f"pipeline failed:\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
         )
+    _write_checksums(E2E_DIR)
     return E2E_DIR
 
 

@@ -417,6 +417,140 @@ def _dictionary_rows() -> list[list[str]]:
     ]
 
 
+def write_powerbi_support_csvs(
+    offers: list[Offer], context: ExportContext, output_dir: Path
+) -> dict[str, int]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    ordered = _ordered_offers(offers)
+    counts: dict[str, int] = {}
+
+    career_rows = [
+        {
+            "offer_id": offer.offer_id,
+            "career_id": career.id,
+            "career_name": career.name,
+        }
+        for offer in ordered
+        for career in offer.careers
+    ]
+    career_path = output_dir / "offer_careers.csv"
+    with career_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(
+            handle, fieldnames=["offer_id", "career_id", "career_name"], lineterminator="\n"
+        )
+        writer.writeheader()
+        writer.writerows(career_rows)
+    counts["offer_careers"] = len(career_rows)
+
+    skill_rows = [
+        {"offer_id": offer.offer_id, "skill": skill} for offer in ordered for skill in offer.skills
+    ]
+    skill_path = output_dir / "offer_skills.csv"
+    with skill_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=["offer_id", "skill"], lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(skill_rows)
+    counts["offer_skills"] = len(skill_rows)
+
+    quality_rows = [
+        {
+            "rule_id": rule.rule_id,
+            "description": rule.description,
+            "description_es": RULE_DESCRIPTIONS_ES.get(rule.rule_id, rule.description),
+            "severity": rule.severity,
+            "severity_es": "Crítica" if rule.severity == "critical" else "Advertencia",
+            "checked": rule.checked,
+            "failed": rule.failed,
+            "pass_rate": rule.pass_rate,
+            "sample_failed_offer_ids": "; ".join(rule.sample_failed_offer_ids),
+        }
+        for rule in context.quality.rules
+    ]
+    quality_path = output_dir / "quality_rules.csv"
+    with quality_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=[
+                "rule_id",
+                "description",
+                "description_es",
+                "severity",
+                "severity_es",
+                "checked",
+                "failed",
+                "pass_rate",
+                "sample_failed_offer_ids",
+            ],
+            lineterminator="\n",
+        )
+        writer.writeheader()
+        writer.writerows(quality_rows)
+    counts["quality_rules"] = len(quality_rows)
+
+    salaries = [offer.salary_amount for offer in ordered if offer.salary_amount is not None]
+    metadata = {
+        "run_id": context.run_id,
+        "source": context.source,
+        "as_of": context.as_of.isoformat(),
+        "generated_at": context.generated_at.isoformat(timespec="seconds"),
+        "runtime_seconds": context.runtime_seconds,
+        "offers": len(ordered),
+        "companies": len({offer.company for offer in ordered if offer.company}),
+        "careers": len({career.id for offer in ordered for career in offer.careers}),
+        "skills": len({skill for offer in ordered for skill in offer.skills}),
+        "quality_score": context.quality.overall_score,
+        "expiring": sum(1 for offer in ordered if offer.status == "expiring_soon"),
+        "salary_average": round(sum(salaries) / len(salaries), 2) if salaries else 0,
+        "last_updated": context.generated_at.strftime("%d/%m/%Y %H:%M"),
+    }
+    metadata_path = output_dir / "run_metadata.csv"
+    with metadata_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(metadata), lineterminator="\n")
+        writer.writeheader()
+        writer.writerow(metadata)
+    counts["run_metadata"] = 1
+
+    language_path = output_dir / "dim_idioma.csv"
+    with language_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(
+            handle, fieldnames=["Idioma", "Etiqueta", "Orden"], lineterminator="\n"
+        )
+        writer.writeheader()
+        writer.writerows(
+            [
+                {"Idioma": "ES", "Etiqueta": "Español", "Orden": 1},
+                {"Idioma": "EN", "Etiqueta": "English", "Orden": 2},
+            ]
+        )
+    counts["dim_idioma"] = 2
+
+    status_path = output_dir / "dim_estado.csv"
+    with status_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=["status", "label_es", "label_en", "orden"],
+            lineterminator="\n",
+        )
+        writer.writeheader()
+        writer.writerows(
+            [
+                {"status": "active", "label_es": "Vigente", "label_en": "Active", "orden": 1},
+                {
+                    "status": "expiring_soon",
+                    "label_es": "Por vencer",
+                    "label_en": "Expiring soon",
+                    "orden": 2,
+                },
+                {"status": "expired", "label_es": "Vencida", "label_en": "Expired", "orden": 3},
+                {"status": "unknown", "label_es": "Sin fecha", "label_en": "No date", "orden": 4},
+            ]
+        )
+    counts["dim_estado"] = 4
+
+    LOGGER.info("power bi support csvs written", extra={"path": str(output_dir), "counts": counts})
+    return counts
+
+
 def write_excel(offers: list[Offer], context: ExportContext, path: Path) -> int:
     path.parent.mkdir(parents=True, exist_ok=True)
     ordered = _ordered_offers(offers)

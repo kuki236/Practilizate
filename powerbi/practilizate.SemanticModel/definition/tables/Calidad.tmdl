@@ -1,0 +1,93 @@
+/// Resultados de las 17 reglas de calidad.
+table Calidad
+	lineageTag: 0882c369-d3a4-46aa-8aa3-b369e070f64c
+
+	/// Promedio de la tasa de aprobación de las 17 reglas.
+	measure 'Calidad General' = AVERAGE('Calidad'[pass_rate])
+		formatString: 0.0%
+		displayFolder: Calidad
+		lineageTag: ceb5313d-7ba3-415a-935e-eca75fd6acaa
+
+	/// Reglas con al menos una oferta fallida.
+	measure 'Reglas Fallidas' = COUNTROWS(FILTER('Calidad', 'Calidad'[failed] > 0))
+		formatString: #,##0
+		displayFolder: Calidad
+		lineageTag: fae256ea-9da6-4db4-98b6-9431844b3166
+
+	/// Reglas críticas que fallaron.
+	measure 'Reglas Críticas Fallidas' = CALCULATE(COUNTROWS('Calidad'), 'Calidad'[severity] = "critical", 'Calidad'[failed] > 0)
+		formatString: #,##0
+		displayFolder: Calidad
+		lineageTag: bf7b93cb-1a12-4ec1-ae4c-17db349c3518
+
+	/// Suma de fallos de todas las reglas.
+	measure 'Fallidas Totales' = SUM('Calidad'[failed])
+		formatString: #,##0
+		displayFolder: Calidad
+		lineageTag: eef62a8d-85cb-4cf4-aa08-530cef3dc940
+
+	column rule_id
+		dataType: string
+		lineageTag: 1cf65712-aa56-41c6-841c-410ee6f9c33d
+		summarizeBy: none
+		sourceColumn: rule_id
+
+	column description
+		dataType: string
+		lineageTag: 3404c1a1-a318-49ba-87f8-ebb770baa5de
+		summarizeBy: none
+		sourceColumn: description
+
+	column severity
+		dataType: string
+		lineageTag: 72a3ab55-7434-442e-beb1-6e896ca34741
+		summarizeBy: none
+		sourceColumn: severity
+
+	column checked
+		dataType: int64
+		lineageTag: dafa60f9-851b-483f-ad22-4a914242de70
+		summarizeBy: none
+		sourceColumn: checked
+
+	column failed
+		dataType: int64
+		lineageTag: 310cca4e-ead6-45da-9ed0-b1b0def31695
+		summarizeBy: none
+		sourceColumn: failed
+
+	column pass_rate
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 42c99b95-0199-4e1a-8348-a10b7590de89
+		summarizeBy: none
+		sourceColumn: pass_rate
+
+	column sample_failed_offer_ids
+		dataType: string
+		lineageTag: 43eb4d9f-d95f-467a-a687-3715e847a67d
+		summarizeBy: none
+		sourceColumn: sample_failed_offer_ids
+
+	column description_es
+		dataType: string
+		lineageTag: 75af9747-9ea7-44d3-8166-802d571686b1
+		summarizeBy: none
+		sourceColumn: description_es
+
+	column severity_es
+		dataType: string
+		lineageTag: 5a5d3d87-9b80-4c85-bab3-146ffd0c7cea
+		summarizeBy: none
+		sourceColumn: severity_es
+
+	partition Calidad = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "\quality_rules.csv"),[Delimiter=",",Encoding=65001,QuoteStyle=QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source,[PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Promoted,{{"rule_id", type text}, {"description", type text}, {"severity", type text}, {"checked", Int64.Type}, {"failed", Int64.Type}, {"pass_rate", type number}, {"sample_failed_offer_ids", type text}})
+				in
+				    Typed
+

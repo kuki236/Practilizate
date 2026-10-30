@@ -1,0 +1,253 @@
+/// Una fila por oferta normalizada de practicas.pe.
+table Ofertas
+	lineageTag: 077e5c14-d274-49fe-885e-12b1efc79a25
+
+	/// Cantidad de ofertas en el contexto actual.
+	measure 'Total Ofertas' = COUNTROWS('Ofertas')
+		formatString: #,##0
+		displayFolder: KPIs
+		lineageTag: f16b3ff1-0f1c-4856-af11-3f4c9856dbd6
+
+	/// Empresas distintas con al menos una oferta, excluyendo valores vacíos.
+	measure Empresas =
+			CALCULATE(
+			    DISTINCTCOUNT('Ofertas'[company]),
+			    FILTER('Ofertas', NOT ISBLANK('Ofertas'[company]) && 'Ofertas'[company] <> "")
+			)
+		formatString: #,##0
+		displayFolder: KPIs
+		lineageTag: 06d7ebce-33f6-40f0-8b55-84a1641d33ee
+
+	/// Carreras distintas asociadas a las ofertas.
+	measure Carreras = DISTINCTCOUNT('Carreras'[career_name])
+		formatString: #,##0
+		displayFolder: KPIs
+		lineageTag: 1c94334d-cd27-4ba0-b1aa-c6c618dd5741
+
+	/// Habilidades distintas detectadas.
+	measure Habilidades = DISTINCTCOUNT('Habilidades'[skill])
+		formatString: #,##0
+		displayFolder: KPIs
+		lineageTag: 364b76cd-8b33-4d42-abab-f6e3a3023558
+
+	/// Promedio de la calidad por oferta.
+	measure 'Calidad Promedio' = AVERAGE('Ofertas'[quality_score])
+		formatString: 0.0%
+		displayFolder: KPIs
+		lineageTag: 36efa2b5-8c22-4d27-853f-9efcd3f5d1cc
+
+	/// Ofertas que vencen dentro de 7 días.
+	measure 'Por Vencer' = CALCULATE([Total Ofertas], 'Ofertas'[status] = "expiring_soon")
+		formatString: #,##0
+		displayFolder: KPIs
+		lineageTag: 7c933500-af36-45f9-8a61-16b3a576c228
+
+	/// Ofertas con fecha límite pasada.
+	measure Vencidas = CALCULATE([Total Ofertas], 'Ofertas'[status] = "expired")
+		formatString: #,##0
+		displayFolder: KPIs
+		lineageTag: 46a65395-fc53-410d-b5bd-32f3ab299f10
+
+	/// Ofertas vigentes.
+	measure Vigentes = CALCULATE([Total Ofertas], 'Ofertas'[status] = "active")
+		formatString: #,##0
+		displayFolder: KPIs
+		lineageTag: 71f19de5-b996-46fb-99ae-de669b614f05
+
+	/// Subvención mensual promedio, sin valores atípicos mayores a S/ 12,000.
+	measure 'Subvención Promedio' = CALCULATE(AVERAGE('Ofertas'[salary_amount]), 'Ofertas'[salary_amount] <= 12000)
+		formatString: "S/ "#,0.00
+		displayFolder: KPIs
+		lineageTag: d5260aee-58db-4558-9588-25905beb1cbc
+
+	/// Días promedio entre la fecha de corte y el vencimiento.
+	measure 'Días Promedio para Vencer' = AVERAGE('Ofertas'[days_to_deadline])
+		formatString: #,##0
+		displayFolder: KPIs
+		lineageTag: 8020154d-56cb-4709-9568-2bf40450ddab
+
+	/// Resumen dinámico en español o inglés.
+	measure 'Mensaje Ejecutivo' =
+			VAR lang = SELECTEDVALUE('Idioma'[Idioma], "ES")
+			VAR total = FORMAT([Total Ofertas], "#,##0")
+			VAR carreras = FORMAT([Carreras], "#,##0")
+			VAR porVencerNum = [Por Vencer]
+			VAR porVencer = FORMAT(porVencerNum, "#,##0")
+			VAR verboEs = IF(porVencerNum = 1, "vence", "vencen")
+			VAR verboEn = IF(porVencerNum = 1, "expires", "expire")
+			VAR calidad = FORMAT([Calidad General], "0.0%")
+			RETURN
+			SWITCH(lang,
+			    "ES", "Hay " & total & " ofertas en " & carreras & " carreras; " & porVencer & " " & verboEs & " en 7 días. Calidad general: " & calidad & ".",
+			    "EN", "There are " & total & " offers across " & carreras & " careers; " & porVencer & " " & verboEn & " within 7 days. Overall quality: " & calidad & "."
+			)
+		displayFolder: Idioma
+		lineageTag: 8266cbea-128f-41fb-886c-b9871c25c9eb
+
+	/// Fecha de corte con etiqueta bilingüe.
+	measure Actualizado =
+			VAR lang = SELECTEDVALUE('Idioma'[Idioma], "ES")
+			VAR fecha = FORMAT(MAX('Metadatos'[as_of]), "dd/mm/yyyy")
+			RETURN SWITCH(lang, "ES", "Actualizado al " & fecha, "EN", "Updated on " & fecha)
+		displayFolder: Idioma
+		lineageTag: d611deaa-2fe9-4d69-a047-3f5aeaf37b7b
+
+	column offer_id
+		dataType: string
+		isHidden
+		lineageTag: 112245cd-2f49-48a2-bb86-eb6d50887aab
+		summarizeBy: none
+		sourceColumn: offer_id
+
+	column title
+		dataType: string
+		lineageTag: 8dbac5b8-7dfd-4b95-9ed1-f77f7c1bb3eb
+		summarizeBy: none
+		sourceColumn: title
+
+	column company
+		dataType: string
+		lineageTag: 4850c244-a8c5-4515-ac85-da788f7e3a12
+		summarizeBy: none
+		sourceColumn: company
+
+	column company_normalized
+		dataType: string
+		isHidden
+		lineageTag: 157473ee-63db-41ef-9091-d20c7947bbf7
+		summarizeBy: none
+		sourceColumn: company_normalized
+
+	column location
+		dataType: string
+		lineageTag: 15860a47-2a02-42af-a615-69dd8e365a65
+		summarizeBy: none
+		sourceColumn: location
+
+	column district
+		dataType: string
+		lineageTag: 0de7e896-2670-47ec-9595-a78e0e46c56a
+		summarizeBy: none
+		sourceColumn: district
+
+	column department
+		dataType: string
+		lineageTag: 04766357-9c09-455a-b0b9-99235d99b658
+		summarizeBy: none
+		sourceColumn: department
+
+	column modality
+		dataType: string
+		lineageTag: 7832dc87-e2c0-4fa7-87d9-c61c1e03e17e
+		summarizeBy: none
+		sourceColumn: modality
+
+	column attendance
+		dataType: string
+		lineageTag: f190fdd8-ad35-474a-a916-de8842fbe1e7
+		summarizeBy: none
+		sourceColumn: attendance
+
+	column salary_text
+		dataType: string
+		lineageTag: 3e5bd530-4d1a-457d-9d87-dcd4b278e694
+		summarizeBy: none
+		sourceColumn: salary_text
+
+	column salary_amount
+		dataType: double
+		formatString: "S/ "#,0.00
+		lineageTag: ae81fef1-c540-4ec3-9a26-d81ce0735ce6
+		summarizeBy: none
+		sourceColumn: salary_amount
+
+	column salary_currency
+		dataType: string
+		isHidden
+		lineageTag: f041c603-81e9-4d7c-b038-f2b88ef04400
+		summarizeBy: none
+		sourceColumn: salary_currency
+
+	column published_at
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 5a722c6e-c75f-4dd7-8825-abea4c1ddff2
+		summarizeBy: none
+		sourceColumn: published_at
+
+	column deadline_at
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 333f92a1-3648-4cb2-8c49-ce188e2127fc
+		summarizeBy: none
+		sourceColumn: deadline_at
+
+	column status
+		dataType: string
+		isHidden
+		lineageTag: e1659b68-b22e-4bff-98ae-53f54e5c33b3
+		summarizeBy: none
+		sourceColumn: status
+
+	column career_count
+		dataType: int64
+		lineageTag: 24c0d246-5eec-447a-8e7c-757b6fd63fc0
+		summarizeBy: none
+		sourceColumn: career_count
+
+	column careers
+		dataType: string
+		isHidden
+		lineageTag: fff43250-3802-4bf0-979a-d36e82503061
+		summarizeBy: none
+		sourceColumn: careers
+
+	column skill_count
+		dataType: int64
+		lineageTag: 5358bf15-34ce-435f-b896-f80307dc2592
+		summarizeBy: none
+		sourceColumn: skill_count
+
+	column skills
+		dataType: string
+		isHidden
+		lineageTag: d3330666-68e5-42e0-9c7b-72fb567b053b
+		summarizeBy: none
+		sourceColumn: skills
+
+	column requirements_text
+		dataType: string
+		lineageTag: 4bc8a9e3-b243-4b54-a552-e998b743c0a6
+		summarizeBy: none
+		sourceColumn: requirements_text
+
+	column source_fetched_at
+		dataType: string
+		isHidden
+		lineageTag: 642f434f-1bcb-4244-95f4-341cfcfcee31
+		summarizeBy: none
+		sourceColumn: source_fetched_at
+
+	column quality_score
+		dataType: double
+		formatString: 0.0%
+		lineageTag: a1061ce1-588f-43b9-8fab-a331e66a9280
+		summarizeBy: none
+		sourceColumn: quality_score
+
+	column days_to_deadline
+		dataType: int64
+		lineageTag: f2d8137a-0648-47d3-9d2d-0a1b65b4e752
+		summarizeBy: none
+		sourceColumn: days_to_deadline
+
+	partition Ofertas = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "\dashboard_dataset.csv"),[Delimiter=",",Encoding=65001,QuoteStyle=QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source,[PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Promoted,{{"offer_id", type text}, {"title", type text}, {"company", type text}, {"company_normalized", type text}, {"location", type text}, {"district", type text}, {"department", type text}, {"modality", type text}, {"attendance", type text}, {"salary_text", type text}, {"salary_amount", type number}, {"salary_currency", type text}, {"published_at", type date}, {"deadline_at", type date}, {"status", type text}, {"career_count", Int64.Type}, {"careers", type text}, {"skill_count", Int64.Type}, {"skills", type text}, {"requirements_text", type text}, {"source_fetched_at", type text}, {"quality_score", type number}, {"days_to_deadline", Int64.Type}})
+				in
+				    Typed
+

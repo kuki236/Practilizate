@@ -1,0 +1,18 @@
+model practilizate
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation PBI_ProTooling = ["MCP-PBIModeling"]
+
+ref table Idioma
+ref table Ofertas
+ref table Carreras
+ref table Habilidades
+ref table Calidad
+ref table Metadatos
+ref table Estado
+

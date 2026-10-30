@@ -1,0 +1,37 @@
+/// Selector de idioma desconectado (ES/EN).
+table Idioma
+	lineageTag: eea803aa-295a-4b2d-a5b3-38946bb14853
+
+	/// Etiqueta del idioma seleccionado.
+	measure 'Idioma Actual' = SWITCH(SELECTEDVALUE('Idioma'[Idioma], "ES"), "ES", "Español", "English")
+		displayFolder: Idioma
+		lineageTag: 561ac583-85e2-4cec-8a8f-67de8ad77caa
+
+	column Idioma
+		dataType: string
+		lineageTag: 11f827d4-8efc-43be-9277-df91bfb5b8e1
+		summarizeBy: none
+		sourceColumn: Idioma
+
+	column Etiqueta
+		dataType: string
+		lineageTag: a6adf150-46d6-4ec0-9a1c-36ccc06cdb92
+		summarizeBy: none
+		sourceColumn: Etiqueta
+
+	column Orden
+		dataType: int64
+		lineageTag: 66487da2-418c-418d-aefa-175c29488480
+		summarizeBy: none
+		sourceColumn: Orden
+
+	partition Idioma = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "\dim_idioma.csv"),[Delimiter=",",Encoding=65001,QuoteStyle=QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source,[PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Promoted,{{"Idioma", type text}, {"Etiqueta", type text}, {"Orden", Int64.Type}})
+				in
+				    Typed
+

@@ -4,7 +4,7 @@
 
 Practilizate turns public internship listings into a reproducible data product: a validated PostgreSQL star schema, a Power BI dashboard, an Excel workbook, and a data quality report.
 
-> **Status:** documentation and roadmap are ready. The implementation is tracked in [ROADMAP.md](ROADMAP.md).
+> **Status:** v0.1 complete. The fixture pipeline, PostgreSQL star schema, Excel workbook, bilingual Power BI report, and E2E artifacts are in the repository.
 > **Español:** [README.es.md](README.es.md)
 
 ## Why Practilizate
@@ -56,6 +56,10 @@ practicas.pe
 
 ## Demo
 
+![Dashboard in Spanish](docs/assets/dashboard-es.png)
+
+![Dashboard in English](docs/assets/dashboard-en.png)
+
 ![Excel executive summary](docs/assets/excel-summary.png)
 
 ![Data quality report](docs/assets/quality-report.png)
@@ -64,6 +68,7 @@ practicas.pe
 - Dashboard (English): `docs/assets/dashboard-en.png`
 - Excel summary: `docs/assets/excel-summary.png`
 - Data quality report: `docs/assets/quality-report.png`
+- Power BI guide: [powerbi/README.md](powerbi/README.md)
 
 ## Data source and attribution
 
@@ -85,19 +90,24 @@ python -m venv .venv
 pip install -e ".[dev]"
 docker compose up -d db
 Copy-Item .env.example .env
-python -m practilizate run --source fixtures
+python -m practilizate run --source fixtures --as-of 2026-10-29
 pytest tests/e2e
 ```
 
 The default `fixtures` mode is deterministic and does not call the live site.
+Docker Compose maps PostgreSQL to host port **5433**; `.env.example` already
+uses that port. `python -m practilizate ingest --source live` uses the public
+site with a cache and a configurable rate limit.
 
 ## Power BI
 
 Open `powerbi/practilizate.pbip` in Power BI Desktop and save it as `.pbix` if needed.
 
-- v0.1 uses `data/processed/dashboard_dataset.csv` for portability.
-- PostgreSQL is documented as an optional live source.
-- The report includes an ES/EN language toggle and accessible colors.
+- v0.1 uses `data/processed/dashboard_dataset.csv` plus the support CSVs for portability.
+- The model reads the snapshot through the `DataFolder` parameter; update it if the repository moves.
+- The six pages cover executive summary, skills, companies and compensation, deadlines, quality, and a bilingual help page.
+- The report includes an ES/EN toggle (`Idioma` table and DAX `SWITCH` measures), alt text, accessible colors, a source footer, and a `Limpiar filtros` button.
+- PostgreSQL is documented as an optional live source in [powerbi/README.md](powerbi/README.md).
 
 ## Excel
 
@@ -122,28 +132,48 @@ The workbook is generated at `data/processed/practilizate.xlsx` and includes:
 artifacts/e2e/
 ├─ run_manifest.json
 ├─ quality_report.json
+├─ normalized_offers.json
+├─ database_load.json
+├─ export_report.json
 ├─ practilizate.xlsx
 ├─ dashboard_dataset.csv
+├─ offer_careers.csv
+├─ offer_skills.csv
+├─ quality_rules.csv
+├─ run_metadata.csv
+├─ dim_idioma.csv
+├─ dim_estado.csv
 └─ checksums.sha256
 ```
 
+`artifacts/e2e/` is generated and gitignored; CI uploads it as an artifact and
+the release attaches it.
+
 ## Results
 
-> Metrics will be filled after the live snapshot and E2E run.
+> Fixture snapshot (`--as-of 2026-10-29`). Live mode produces different counts.
 
 | Metric | Value |
 |---|---|
-| Offers processed | `[N]` |
-| Companies | `[M]` |
-| Careers | `[C]` |
-| Skills | `[S]` |
-| Quality score | `[Q]%` |
-| Offers expiring within 7 days | `[D]` |
-| Pipeline runtime | `[T]` |
+| Offers processed | 12 |
+| Companies | 10 |
+| Careers | 3 |
+| Skills | 21 |
+| Quality score | 94.3% |
+| Offers expiring within 7 days | 1 |
+| Pipeline runtime | ~1.5 s (fixture, PostgreSQL included) |
+
+The quality report flags 10 warning rules and no critical rule. See
+[docs/fixtures.md](docs/fixtures.md) for the expected fixture outcomes and
+[docs/data-dictionary.md](docs/data-dictionary.md) for field definitions.
 
 ## Nielsen heuristics
 
-The product follows the 10 usability heuristics in [docs/heuristics.md](docs/heuristics.md). Review evidence is tracked in [docs/heuristics-review.md](docs/heuristics-review.md).
+The product follows the 10 usability heuristics in [docs/heuristics.md](docs/heuristics.md). Review evidence is complete in [docs/heuristics-review.md](docs/heuristics-review.md), using the screenshots above, the Excel workbook, the quality report, and the E2E manifest.
+
+## Data dictionary
+
+Field definitions for the star schema, CSV snapshot, quality report, and manifest are in [docs/data-dictionary.md](docs/data-dictionary.md).
 
 ## Project structure
 
@@ -166,7 +196,7 @@ practilizate/
 ├─ data/processed/
 ├─ artifacts/e2e/
 ├─ powerbi/
-├─ excel/
+├─ scripts/
 ├─ docker-compose.yml
 ├─ pyproject.toml
 ├─ .env.example

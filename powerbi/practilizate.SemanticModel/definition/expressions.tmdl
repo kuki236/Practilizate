@@ -1,0 +1,4 @@
+/// Folder that contains the pipeline CSV snapshot used by the Practilizate model.
+expression DataFolder = "C:\Users\sebas\Desktop\practicas\projects\practilizate\data\processed" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: edf9518d-0445-4459-a642-2a2a12b384e3
+

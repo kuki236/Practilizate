@@ -9,7 +9,12 @@ from pydantic import BaseModel
 
 from practilizate.config import Settings
 from practilizate.db import load_offers
-from practilizate.export import ExportContext, write_dashboard_csv, write_excel
+from practilizate.export import (
+    ExportContext,
+    write_dashboard_csv,
+    write_excel,
+    write_powerbi_support_csvs,
+)
 from practilizate.fetch import FetchError, LiveSource
 from practilizate.ingest import ingest_offers
 from practilizate.logging import get_logger
@@ -222,6 +227,7 @@ def run_command(settings: Settings, args, run_dir: Path) -> int:
                 salary_max=settings.salary_max,
             )
             csv_rows = write_dashboard_csv(result.offers, csv_path, result.as_of)
+            support_counts = write_powerbi_support_csvs(result.offers, context, output_dir)
             excel_sheets = write_excel(result.offers, context, excel_path)
             write_json(
                 run_dir / "export_report.json",
@@ -231,7 +237,11 @@ def run_command(settings: Settings, args, run_dir: Path) -> int:
                     "excel": {"path": str(excel_path), "sheets": excel_sheets},
                 },
             )
-            stages["export"] = {"csv_rows": csv_rows, "excel_sheets": excel_sheets}
+            stages["export"] = {
+                "csv_rows": csv_rows,
+                "excel_sheets": excel_sheets,
+                "support_csvs": support_counts,
+            }
             artifacts["dashboard_csv"] = "dashboard_dataset.csv"
             artifacts["excel"] = "practilizate.xlsx"
             artifacts["export_report"] = "export_report.json"
@@ -331,7 +341,8 @@ def export_command(settings: Settings, args) -> int:
     result: dict[str, object] = {}
     if "csv" in formats:
         rows = write_dashboard_csv(offers, output_dir / "dashboard_dataset.csv", settings.as_of)
-        result["csv"] = {"rows": rows}
+        support = write_powerbi_support_csvs(offers, context, output_dir)
+        result["csv"] = {"rows": rows, "support": support}
     if "excel" in formats:
         sheets = write_excel(offers, context, output_dir / "practilizate.xlsx")
         result["excel"] = {"sheets": sheets}

@@ -153,3 +153,20 @@ def test_export_command_rebuilds_deliverables(e2e_run: Path) -> None:
     assert summary["excel"]["sheets"] == 8
     assert (output_dir / "dashboard_dataset.csv").is_file()
     assert (output_dir / "practilizate.xlsx").is_file()
+
+
+def test_e2e_artifacts_have_checksums(e2e_run: Path) -> None:
+    import hashlib
+
+    checksum_path = e2e_run / "checksums.sha256"
+    assert checksum_path.is_file()
+    lines = [line for line in checksum_path.read_text(encoding="utf-8").splitlines() if line]
+    assert lines
+    for line in lines:
+        digest, name = line.split("  ", 1)
+        path = e2e_run / name
+        assert path.is_file(), name
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == digest, name
+    manifest = json.loads((e2e_run / "run_manifest.json").read_text(encoding="utf-8"))
+    assert manifest["artifacts"]["checksums"] == "checksums.sha256"
+    assert manifest["checksum_count"] == len(lines)
