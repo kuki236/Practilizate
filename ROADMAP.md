@@ -17,11 +17,11 @@ Work through the checkpoints in order. After each checkpoint, run E2E, update th
 
 ## CP1 — Scaffold and local infrastructure
 
-- [ ] Create `pyproject.toml` with Python 3.13, dependencies, ruff, and pytest.
-- [ ] Create `src/practilizate/` package and CLI entry point.
-- [ ] Create `docker-compose.yml` for PostgreSQL.
-- [ ] Create `.github/workflows/ci.yml`.
-- [ ] Add a minimal `python -m practilizate --help`.
+- [x] Create `pyproject.toml` with Python 3.13, dependencies, ruff, and pytest.
+- [x] Create `src/practilizate/` package and CLI entry point.
+- [x] Create `docker-compose.yml` for PostgreSQL.
+- [x] Create `.github/workflows/ci.yml`.
+- [x] Add a minimal `python -m practilizate --help`.
 
 **Acceptance:** `python -m practilizate --help` works; `docker compose up -d db` starts PostgreSQL; CI runs.
 

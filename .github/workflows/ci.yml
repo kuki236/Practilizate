@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: practilizate_e2e
+          POSTGRES_USER: practilizate
+          POSTGRES_PASSWORD: practilizate
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U practilizate -d practilizate_e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql+psycopg://practilizate:practilizate@localhost:5432/practilizate_e2e
+      PRACTILIZATE_SOURCE: fixtures
+      PRACTILIZATE_AS_OF: "2026-10-29"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Format check
+        run: ruff format --check .
+      - name: Lint
+        run: ruff check .
+      - name: End-to-end suite
+        run: pytest tests/e2e
+      - name: Upload E2E artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: artifacts/e2e
+          if-no-files-found: warn
