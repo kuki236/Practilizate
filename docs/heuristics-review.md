@@ -83,4 +83,6 @@ Power BI support CSVs, and artifact checksums.
   mode is implemented but its counts depend on the public site; the report
   screenshots use the deterministic fixture snapshot. The Windows Desktop bridge
   screenshot CLI was unavailable in this environment, so screenshots were
-  captured from the validated report window in Power BI Desktop.
+  captured from the validated report window in Power BI Desktop. The English
+  screenshot was captured with the report filtered to `Idioma = EN`, the same
+  state the language selector produces.
