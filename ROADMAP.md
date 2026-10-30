@@ -96,11 +96,11 @@ Work through the checkpoints in order. After each checkpoint, run E2E, update th
 
 ## CP8 — Heuristics, README, and final E2E
 
-- [ ] Complete `docs/heuristics-review.md` with screenshots and pass/fail evidence.
-- [ ] Update `README.md` and `README.es.md` with real metrics, screenshots, and setup.
-- [ ] Run the full E2E and write artifacts with checksums.
-- [ ] Run `ruff format` and `ruff check`.
-- [ ] Tag `v0.1.0`.
+- [x] Complete `docs/heuristics-review.md` with screenshots and pass/fail evidence.
+- [x] Update `README.md` and `README.es.md` with real metrics, screenshots, and setup.
+- [x] Run the full E2E and write artifacts with checksums.
+- [x] Run `ruff format` and `ruff check`.
+- [x] Tag `v0.1.0`.
 
 **Acceptance:** E2E passes, CI is green, README is accurate, and heuristics evidence is complete.
 
@@ -108,10 +108,10 @@ Work through the checkpoints in order. After each checkpoint, run E2E, update th
 
 ## CP9 — GitHub release
 
-- [ ] Review repository for secrets and raw data.
-- [ ] Push the private repository.
-- [ ] Create a release with the E2E artifact.
-- [ ] Decide whether the repository can become public.
+- [x] Review repository for secrets and raw data.
+- [ ] Push the private repository. (user action)
+- [ ] Create a release with the E2E artifact. (user action)
+- [ ] Decide whether the repository can become public. (user action)
 
 **Acceptance:** private repo is up to date and the release contains the verified artifact.
 
