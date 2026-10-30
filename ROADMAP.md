@@ -112,7 +112,7 @@ Work through the checkpoints in order. After each checkpoint, run E2E, update th
 - [x] Push the repository. (currently public)
 - [x] Create a release with the E2E artifact.
 - [x] Decide whether the repository can become public. (public since v0.1.0)
-- [x] Publish the live snapshot release `v0.1.1` with live evidence.
+- [x] Publish the live snapshot release `v0.1.1` and the `v0.1.2` header patch.
 
 **Acceptance:** private repo is up to date and the release contains the verified artifact.
 

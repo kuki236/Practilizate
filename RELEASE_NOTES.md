@@ -1,8 +1,16 @@
-# Practilizate v0.1.1
+# Practilizate v0.1.2
 
 Reproducible observatory of pre-professional internship offers in Lima, Peru.
-This release replaces the fixture-only demo with a **live snapshot** taken on
-2026-10-29 while keeping the deterministic synthetic E2E artifact.
+This patch keeps the live `live-20261029` snapshot and fixes the Power BI table
+headers so the report is fully understandable in Spanish.
+
+## What changed in v0.1.2
+
+- Power BI tables now use Spanish display names: `Oferta`, `Empresa`, `Vence`,
+  `Días`, `Estado`, `Subvención`, `Regla`, `Descripción`, `Severidad`,
+  `Revisadas`, `Fallidas`, `Tasa de aprobación`, and `Ejemplos`.
+- The saved `.pbix` was regenerated from the fixed PBIP with live data.
+- No data or metric changes. The E2E suite still passes.
 
 ## Live snapshot (2026-10-29)
 
@@ -15,52 +23,20 @@ This release replaces the fixture-only demo with a **live snapshot** taken on
 - Salary is published for 156 of 389 offers; averages exclude missing values
   and outliers above S/ 12,000.
 
-Quality warnings:
+Quality warnings: R06 (1 deadline before publication), R14 (38 duplicate
+title + company + deadline groups), and R15 (113 offers with detailed
+requirements but no lexicon skill).
 
-- **R06** — 1 offer with a deadline before its publication date.
-- **R14** — 38 duplicate title + company + deadline groups.
-- **R15** — 113 offers with detailed requirements but no skill from the current
-  lexicon.
+## How to use it
 
-## Highlights
+**1. Review without installing anything**
 
-- Multi-career live ingestion from public practicas.pe listings with cache and
-  a 1 s rate limit.
-- Normalization of company, location, salary, dates, careers, and skills.
-- 17 data quality rules with a visible report and critical-rule gating.
-- PostgreSQL star schema with offer-career and offer-skill bridges.
-- Spanish Excel workbook with tables, formulas, charts, validation, and
-  conditional formatting; the live workbook contains 389 offers.
-- Bilingual Power BI report with six pages, ES/EN toggle, alt text, accessible
-  colors, top-10 charts for 65 careers / 24 skills / 83 companies, and a
-  clear-filters action.
-- E2E suite with a medium-to-hard synthetic fixture set and reproducible
-  artifacts.
+Open the screenshots in `docs/assets/` and the PBIP in Power BI Desktop. The
+PBIP is the report source; save it as `.pbix` for a portable single file. The
+public release also contains aggregate live evidence and a synthetic E2E
+fixture bundle.
 
-## Release assets
-
-- `practilizate-v0.1.1-live-evidence.zip` — live `run_manifest.json`,
-  `quality_report.json`, ingest/load/export summaries, and aggregate metadata.
-  It does **not** include the raw offer CSV, normalized offer JSON, Excel
-  workbook, or support bridge CSVs.
-- `practilizate-v0.1.1-e2e-fixtures.zip` — synthetic E2E artifacts
-  (`run_manifest.json`, `quality_report.json`, `practilizate.xlsx`,
-  `dashboard_dataset.csv`, support CSVs, and checksums). This is test data,
-  not the live snapshot.
-- Both assets include SHA-256 checksum files.
-
-The live CSV and Excel workbook remain local in `data/processed/` and are not
-published in the public repository. The public screenshots show aggregate
-counts only.
-
-## Screenshots
-
-- `docs/assets/dashboard-es.png`
-- `docs/assets/dashboard-en.png`
-- `docs/assets/excel-summary.png`
-- `docs/assets/quality-report.png`
-
-## Setup
+**2. Run the pipeline locally**
 
 ```powershell
 git clone <repository-url>
@@ -74,14 +50,53 @@ python -m practilizate run --source fixtures --as-of 2026-10-29
 pytest tests/e2e
 ```
 
-For the live snapshot:
+For live data:
 
 ```powershell
 python -m practilizate run --source live --as-of 2026-10-29
 ```
 
-Open `powerbi/practilizate.pbip` after the pipeline writes `data/processed/`.
-The semantic model reads the snapshot through the `DataFolder` parameter.
+The live run discovers all careers, caches responses, respects the 1 s rate
+limit, loads PostgreSQL, and writes the CSV and Excel deliverables.
+
+**3. Use the deliverables**
+
+- `data/processed/practilizate.xlsx` — Spanish workbook for students and career centers.
+- `data/processed/dashboard_dataset.csv` — snapshot for Power BI and analysts.
+- `powerbi/practilizate.pbip` — bilingual report source.
+- PostgreSQL `v_dashboard_ofertas` — optional live-analysis view.
+
+**4. Share it online**
+
+The current product is a local CLI + Power BI Desktop + Excel workflow, not a
+hosted web application. Publish the PBIP to a Power BI workspace (requires an
+account/license) or build a web app on top of the CSV/PostgreSQL data. The
+public repository publishes aggregate screenshots and evidence; the live CSV
+and workbook stay local.
+
+**5. Automate a refresh**
+
+Schedule `python -m practilizate run --source live --as-of <date>` with Task
+Scheduler or cron. The collector caches responses and respects the rate limit.
+
+## Release assets
+
+- `practilizate-v0.1.2-live-evidence.zip` — live manifest, quality report,
+  ingest/load/export summaries, aggregate metadata, and rule-level results.
+  It excludes raw offers, normalized offer JSON, Excel, and bridge CSVs.
+- `practilizate-v0.1.2-e2e-fixtures.zip` — synthetic E2E artifacts with
+  checksums; this is test data, not the live snapshot.
+- Both assets include SHA-256 checksum files.
+
+The live `.pbix` is not attached because it contains the live listing cache;
+regenerate it from `powerbi/practilizate.pbip` after running the pipeline.
+
+## Screenshots
+
+- `docs/assets/dashboard-es.png`
+- `docs/assets/dashboard-en.png`
+- `docs/assets/excel-summary.png`
+- `docs/assets/quality-report.png`
 
 ## Data source and scope
 
@@ -93,7 +108,7 @@ personal data are not included. See `DATA_SOURCES.md` and `NOTICE.md`.
 ## Known notes
 
 - The live snapshot is point-in-time; counts and expiring offers change.
-- The skill lexicon covers 24 canonical skills. Expanding it is a v0.2 task.
+- The skill lexicon covers 24 canonical skills; expanding it is a v0.2 task.
 - Missing salary and duplicate content are visible in the quality report, not
   silently removed.
 - The E2E suite uses synthetic fixtures for deterministic CI and never calls

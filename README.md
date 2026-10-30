@@ -4,7 +4,7 @@
 
 Practilizate turns public internship listings into a reproducible data product: a validated PostgreSQL star schema, a Power BI dashboard, an Excel workbook, and a data quality report.
 
-> **Status:** v0.1.1 with a live snapshot (`live-20261029`). The PostgreSQL star schema, Excel workbook, bilingual Power BI report, and E2E artifacts are in the repository.
+> **Status:** v0.1.2 with a live snapshot (`live-20261029`). The PostgreSQL star schema, Excel workbook, bilingual Power BI report, and E2E artifacts are in the repository.
 > **Español:** [README.es.md](README.es.md)
 
 ## Why Practilizate
@@ -106,6 +106,40 @@ python -m practilizate run --source live --as-of 2026-10-29
 Docker Compose maps PostgreSQL to host port **5433**; `.env.example` already
 uses that port. Live ingestion uses a cache, a configurable rate limit, and
 the public site's career filter (65 careers at the snapshot date).
+
+## How to use Practilizate
+
+**1. Review the result without installing anything**
+
+Open the GitHub release, the screenshots, and `powerbi/practilizate.pbip` in
+Power BI Desktop. The PBIP includes the report definition; save it as `.pbix`
+if you need a single portable file.
+
+**2. Run the pipeline locally**
+
+Follow the Quickstart above. The `fixtures` mode is deterministic and is the
+best way to verify the installation. Use `--source live` for real listings.
+
+**3. Use the deliverables**
+
+- `data/processed/practilizate.xlsx` — Spanish workbook for students and career centers.
+- `data/processed/dashboard_dataset.csv` — Power BI/analyst snapshot.
+- `powerbi/practilizate.pbip` — bilingual report source.
+- PostgreSQL `v_dashboard_ofertas` — optional live-analysis view.
+
+**4. Share it online**
+
+The current product is a local CLI + Power BI Desktop + Excel workflow, not a
+hosted web application. To share a dashboard with other people, publish the
+PBIP to a Power BI workspace (requires a Power BI account/license) or host a
+web application on top of the CSV/PostgreSQL data. The public repository
+publishes aggregated screenshots and evidence; the live CSV/Excel stay local.
+
+**5. Automate a refresh**
+
+Schedule `python -m practilizate run --source live --as-of <date>` with Task
+Scheduler or cron. The collector caches responses and respects the configured
+rate limit. The E2E suite uses fixtures and never calls the public site.
 
 ## Power BI
 

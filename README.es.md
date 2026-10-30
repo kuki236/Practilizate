@@ -4,7 +4,7 @@
 
 Practilizate convierte avisos públicos de prácticas en un producto de datos reproducible: un modelo estrella validado en PostgreSQL, un dashboard en Power BI, un libro Excel y un informe de calidad de datos.
 
-> **Estado:** v0.1.1 con snapshot live (`live-20261029`). El modelo estrella en PostgreSQL, el libro Excel, el reporte bilingüe en Power BI y los artefactos E2E están en el repositorio.
+> **Estado:** v0.1.2 con snapshot live (`live-20261029`). El modelo estrella en PostgreSQL, el libro Excel, el reporte bilingüe en Power BI y los artefactos E2E están en el repositorio.
 > **English:** [README.md](README.md)
 
 ## Por qué Practilizate
@@ -106,6 +106,40 @@ python -m practilizate run --source live --as-of 2026-10-29
 Docker Compose publica PostgreSQL en el puerto **5433**; `.env.example` ya usa
 ese puerto. La ingesta live usa caché, un límite de tasa configurable y el
 filtro de carreras del sitio (65 carreras en la fecha del snapshot).
+
+## Cómo usar Practilizate
+
+**1. Revisar el resultado sin instalar nada**
+
+Abre el release de GitHub, las capturas y `powerbi/practilizate.pbip` en Power
+BI Desktop. El PBIP contiene la definición del reporte; guárdalo como `.pbix`
+si necesitas un archivo único.
+
+**2. Ejecutar el pipeline localmente**
+
+Sigue el inicio rápido. El modo `fixtures` es determinista y sirve para
+verificar la instalación. Usa `--source live` para avisos reales.
+
+**3. Usar los entregables**
+
+- `data/processed/practilizate.xlsx` — libro en español para estudiantes y centros de empleabilidad.
+- `data/processed/dashboard_dataset.csv` — snapshot para Power BI/analistas.
+- `powerbi/practilizate.pbip` — fuente del reporte bilingüe.
+- Vista PostgreSQL `v_dashboard_ofertas` — análisis opcional en vivo.
+
+**4. Compartirlo en línea**
+
+El producto actual es un flujo local CLI + Power BI Desktop + Excel, no una
+aplicación web alojada. Para compartir el dashboard, publica el PBIP en un
+workspace de Power BI (requiere cuenta/licencia) o monta una aplicación web
+sobre el CSV/PostgreSQL. El repositorio público publica capturas y evidencia
+agregada; el CSV/Excel live quedan locales.
+
+**5. Automatizar una actualización**
+
+Programa `python -m practilizate run --source live --as-of <fecha>` con Task
+Scheduler o cron. El recolector usa caché y respeta el límite de tasa. El E2E
+usa fixtures y nunca llama al sitio público.
 
 ## Power BI
 
