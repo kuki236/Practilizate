@@ -73,10 +73,10 @@ Work through the checkpoints in order. After each checkpoint, run E2E, update th
 
 ## CP6 — Excel and dashboard dataset
 
-- [ ] Generate `practilizate.xlsx` with the required Spanish sheets.
-- [ ] Add formulas, tables, conditional formatting, and charts.
-- [ ] Export `dashboard_dataset.csv`.
-- [ ] Add E2E artifact checks.
+- [x] Generate `practilizate.xlsx` with the required Spanish sheets.
+- [x] Add formulas, tables, conditional formatting, and charts.
+- [x] Export `dashboard_dataset.csv`.
+- [x] Add E2E artifact checks.
 
 **Acceptance:** workbook opens without repair warnings and contains the required sheets; CSV has the expected schema.
 

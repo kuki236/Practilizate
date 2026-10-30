@@ -56,7 +56,9 @@ practicas.pe
 
 ## Demo
 
-> Screenshots will be added after the Power BI and Excel checkpoints.
+![Excel executive summary](docs/assets/excel-summary.png)
+
+![Data quality report](docs/assets/quality-report.png)
 
 - Dashboard (Spanish): `docs/assets/dashboard-es.png`
 - Dashboard (English): `docs/assets/dashboard-en.png`
@@ -93,7 +95,7 @@ The default `fixtures` mode is deterministic and does not call the live site.
 
 Open `powerbi/practilizate.pbip` in Power BI Desktop and save it as `.pbix` if needed.
 
-- v0.1 uses `data/processed/practilizate_dashboard.csv` for portability.
+- v0.1 uses `data/processed/dashboard_dataset.csv` for portability.
 - PostgreSQL is documented as an optional live source.
 - The report includes an ES/EN language toggle and accessible colors.
 

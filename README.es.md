@@ -56,7 +56,9 @@ practicas.pe
 
 ## Demo
 
-> Las capturas se agregarán al completar los checkpoints de Power BI y Excel.
+![Resumen ejecutivo en Excel](docs/assets/excel-summary.png)
+
+![Informe de calidad de datos](docs/assets/quality-report.png)
 
 - Dashboard en español: `docs/assets/dashboard-es.png`
 - Dashboard en inglés: `docs/assets/dashboard-en.png`
@@ -93,7 +95,7 @@ El modo `fixtures` es determinista y no llama al sitio en vivo.
 
 Abre `powerbi/practilizate.pbip` en Power BI Desktop y guárdalo como `.pbix` si lo necesitas.
 
-- v0.1 usa `data/processed/practilizate_dashboard.csv` para que sea portable.
+- v0.1 usa `data/processed/dashboard_dataset.csv` para que sea portable.
 - PostgreSQL queda documentado como fuente opcional en vivo.
 - El reporte incluye toggle ES/EN y colores accesibles.
 

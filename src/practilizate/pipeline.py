@@ -9,10 +9,11 @@ from pydantic import BaseModel
 
 from practilizate.config import Settings
 from practilizate.db import load_offers
+from practilizate.export import ExportContext, write_dashboard_csv, write_excel
 from practilizate.fetch import FetchError, LiveSource
 from practilizate.ingest import ingest_offers
 from practilizate.logging import get_logger
-from practilizate.models import IngestResult, Offer
+from practilizate.models import IngestResult, Offer, QualityReport
 from practilizate.quality import evaluate_quality
 from practilizate.sources import FixtureSource, OfferSource, SourceError
 
@@ -204,6 +205,41 @@ def run_command(settings: Settings, args, run_dir: Path) -> int:
                 stages["load"] = {"status": "failed", "error_type": type(error).__name__}
                 status = "failed_load"
 
+    outputs: dict[str, str] = {}
+    if status in {"completed", "qualified_no_db", "failed_load"}:
+        try:
+            output_dir = Path(getattr(args, "output_dir", None) or settings.output_dir)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            csv_path = output_dir / "dashboard_dataset.csv"
+            excel_path = output_dir / "practilizate.xlsx"
+            context = ExportContext(
+                run_id=run_id,
+                source=result.source,
+                as_of=result.as_of,
+                generated_at=datetime.now(UTC).replace(tzinfo=None),
+                runtime_seconds=round(time.perf_counter() - started, 3),
+                quality=evaluation.report,
+                salary_max=settings.salary_max,
+            )
+            csv_rows = write_dashboard_csv(result.offers, csv_path, result.as_of)
+            excel_sheets = write_excel(result.offers, context, excel_path)
+            write_json(
+                run_dir / "export_report.json",
+                {
+                    "run_id": run_id,
+                    "csv": {"path": str(csv_path), "rows": csv_rows},
+                    "excel": {"path": str(excel_path), "sheets": excel_sheets},
+                },
+            )
+            stages["export"] = {"csv_rows": csv_rows, "excel_sheets": excel_sheets}
+            artifacts["dashboard_csv"] = "dashboard_dataset.csv"
+            artifacts["excel"] = "practilizate.xlsx"
+            artifacts["export_report"] = "export_report.json"
+            outputs = {"dashboard_csv": str(csv_path), "excel": str(excel_path)}
+        except Exception as error:
+            LOGGER.exception("export failed", extra={"run_id": run_id})
+            stages["export"] = {"status": "failed", "error_type": type(error).__name__}
+            status = "failed_export"
     runtime = round(time.perf_counter() - started, 3)
     manifest = {
         "run_id": run_id,
@@ -230,6 +266,7 @@ def run_command(settings: Settings, args, run_dir: Path) -> int:
         },
         "stages": stages,
         "artifacts": artifacts,
+        "outputs": outputs,
     }
     write_json(run_dir / "run_manifest.json", manifest)
     if getattr(args, "artifacts_dir", None) is None:
@@ -269,4 +306,34 @@ def load_command(settings: Settings, args) -> int:
 
 
 def export_command(settings: Settings, args) -> int:
-    raise PipelineError("export is available after the workbook checkpoint")
+    run_dir = resolve_run_dir(settings, args)
+    payload = read_json(run_dir / "normalized_offers.json")
+    offers = [Offer.model_validate(item) for item in payload["offers"]]
+    run_id = validate_run_id(str(payload.get("run_id") or run_dir.name))
+    quality_payload = read_json(run_dir / "quality_report.json")
+    quality = QualityReport.model_validate(quality_payload)
+    manifest = read_json(run_dir / "run_manifest.json")
+    output_dir = Path(getattr(args, "output_dir", None) or settings.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    formats = {part.strip().lower() for part in str(args.format).split(",") if part.strip()}
+    unknown = formats - {"excel", "csv"}
+    if unknown:
+        raise PipelineError(f"unknown export format: {', '.join(sorted(unknown))}")
+    context = ExportContext(
+        run_id=run_id,
+        source=str(manifest.get("source", payload.get("source", settings.source))),
+        as_of=settings.as_of,
+        generated_at=datetime.now(UTC).replace(tzinfo=None),
+        runtime_seconds=float(manifest.get("runtime_seconds", 0.0)),
+        quality=quality,
+        salary_max=settings.salary_max,
+    )
+    result: dict[str, object] = {}
+    if "csv" in formats:
+        rows = write_dashboard_csv(offers, output_dir / "dashboard_dataset.csv", settings.as_of)
+        result["csv"] = {"rows": rows}
+    if "excel" in formats:
+        sheets = write_excel(offers, context, output_dir / "practilizate.xlsx")
+        result["excel"] = {"sheets": sheets}
+    sys.stdout.write(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
+    return 0
