@@ -4,7 +4,7 @@
 
 Practilizate turns public internship listings into a reproducible data product: a validated PostgreSQL star schema, a Power BI dashboard, an Excel workbook, and a data quality report.
 
-> **Status:** v0.1 complete. The fixture pipeline, PostgreSQL star schema, Excel workbook, bilingual Power BI report, and E2E artifacts are in the repository.
+> **Status:** v0.1.1 with a live snapshot (`live-20261029`). The PostgreSQL star schema, Excel workbook, bilingual Power BI report, and E2E artifacts are in the repository.
 > **Español:** [README.es.md](README.es.md)
 
 ## Why Practilizate
@@ -77,6 +77,8 @@ Data comes from public listings on [practicas.pe](https://www.practicas.pe/).
 - Practilizate is **not affiliated** with practicas.pe.
 - The project uses public data for educational and research purposes.
 - Only aggregated data is published. Raw scraped HTML and personal data are not included.
+- The live CSV and Excel workbook stay outside Git (`data/processed/`); the
+  public screenshots show aggregate counts only.
 - The collector respects `robots.txt`, rate limits, and caching.
 - See [DATA_SOURCES.md](DATA_SOURCES.md) and [NOTICE.md](NOTICE.md).
 
@@ -95,9 +97,15 @@ pytest tests/e2e
 ```
 
 The default `fixtures` mode is deterministic and does not call the live site.
+For the live snapshot:
+
+```powershell
+python -m practilizate run --source live --as-of 2026-10-29
+```
+
 Docker Compose maps PostgreSQL to host port **5433**; `.env.example` already
-uses that port. `python -m practilizate ingest --source live` uses the public
-site with a cache and a configurable rate limit.
+uses that port. Live ingestion uses a cache, a configurable rate limit, and
+the public site's career filter (65 careers at the snapshot date).
 
 ## Power BI
 
@@ -125,8 +133,9 @@ The workbook is generated at `data/processed/practilizate.xlsx` and includes:
 
 - E2E only. No unit tests.
 - The E2E suite runs the full pipeline against a disposable PostgreSQL database.
-- It uses a medium-to-hard fixture set: multi-career offers, duplicates, missing salary, invalid dates, outliers, and missing fields.
-- Each run writes a repeatable artifact to `artifacts/e2e/`:
+- It uses a medium-to-hard **synthetic fixture set**: multi-career offers, duplicates, missing salary, invalid dates, outliers, and missing fields.
+- The live snapshot is validated separately and is not fetched by CI.
+- Each E2E run writes a repeatable synthetic artifact to `artifacts/e2e/`:
 
 ```text
 artifacts/e2e/
@@ -151,21 +160,26 @@ the release attaches it.
 
 ## Results
 
-> Fixture snapshot (`--as-of 2026-10-29`). Live mode produces different counts.
+> Live snapshot `live-20261029` (`--source live --as-of 2026-10-29`), fetched
+> from the public site with a 1 s rate limit. Counts are point-in-time.
 
 | Metric | Value |
 |---|---|
-| Offers processed | 12 |
-| Companies | 10 |
-| Careers | 3 |
-| Skills | 21 |
-| Quality score | 94.3% |
-| Offers expiring within 7 days | 1 |
-| Pipeline runtime | ~1.5 s (fixture, PostgreSQL included) |
+| Offers processed | 389 |
+| Companies | 83 |
+| Careers | 65 |
+| Skills | 24 |
+| Quality score | 97.7% |
+| Offers expiring within 7 days | 330 |
+| Pipeline runtime | 530.6 s (~8.8 min, PostgreSQL included) |
 
-The quality report flags 10 warning rules and no critical rule. See
-[docs/fixtures.md](docs/fixtures.md) for the expected fixture outcomes and
-[docs/data-dictionary.md](docs/data-dictionary.md) for field definitions.
+The quality report flags 3 warning rules and no critical rule: R06 (1 offer with
+a deadline before publication), R14 (38 duplicate title + company + deadline
+groups), and R15 (113 offers with detailed requirements but no lexicon skill).
+Salary is published for 156 of 389 offers; averages exclude missing values and
+outliers above S/ 12,000. See [docs/fixtures.md](docs/fixtures.md) for the
+synthetic E2E contract and [docs/data-dictionary.md](docs/data-dictionary.md)
+for field definitions.
 
 ## Nielsen heuristics
 
@@ -206,7 +220,14 @@ practilizate/
 ## Limitations
 
 - v0.1 covers Lima and pre-professional internships.
-- Public listings may omit salary, deadlines, or detailed requirements.
+- Public listings may omit salary, deadlines, or detailed requirements. In the
+  live snapshot, 233 of 389 offers do not publish a salary.
+- The skill lexicon covers 24 canonical skills; 113 live offers have detailed
+  requirements but no lexicon match. Expanding the lexicon is a v0.2 task.
+- The live snapshot is point-in-time; 330 offers expire within 7 days of the
+  cutoff because many deadlines cluster around the same dates.
+- R14 flags 38 duplicate title + company + deadline groups; they remain visible
+  for audit instead of being silently removed.
 - The site structure can change; fixtures protect the test suite.
 - The project is an observatory, not an application tracker.
 - Data quality is reported, not hidden.

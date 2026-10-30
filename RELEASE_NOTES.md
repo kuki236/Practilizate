@@ -1,45 +1,57 @@
-# Practilizate v0.1.0
+# Practilizate v0.1.1
 
 Reproducible observatory of pre-professional internship offers in Lima, Peru.
+This release replaces the fixture-only demo with a **live snapshot** taken on
+2026-10-29 while keeping the deterministic synthetic E2E artifact.
+
+## Live snapshot (2026-10-29)
+
+- 65 careers discovered from the practicas.pe filter.
+- 389 unique offers after deduplication (1,358 listing references merged).
+- 83 companies, 24 canonical skills, 51 locations.
+- Quality score: **97.7%**, with no critical rule failures.
+- 330 offers expire within 7 days of the cutoff.
+- Pipeline runtime: 530.6 s (~8.8 min) including PostgreSQL load and exports.
+- Salary is published for 156 of 389 offers; averages exclude missing values
+  and outliers above S/ 12,000.
+
+Quality warnings:
+
+- **R06** — 1 offer with a deadline before its publication date.
+- **R14** — 38 duplicate title + company + deadline groups.
+- **R15** — 113 offers with detailed requirements but no skill from the current
+  lexicon.
 
 ## Highlights
 
-- Multi-career ingestion from public practicas.pe listings with cache and rate limiting.
+- Multi-career live ingestion from public practicas.pe listings with cache and
+  a 1 s rate limit.
 - Normalization of company, location, salary, dates, careers, and skills.
 - 17 data quality rules with a visible report and critical-rule gating.
 - PostgreSQL star schema with offer-career and offer-skill bridges.
-- Spanish Excel workbook with tables, formulas, charts, validation, and conditional formatting.
-- Bilingual Power BI report with six pages, ES/EN toggle, alt text, accessible colors, and a clear-filters action.
-- E2E suite with a medium-to-hard fixture set and reproducible artifacts.
+- Spanish Excel workbook with tables, formulas, charts, validation, and
+  conditional formatting; the live workbook contains 389 offers.
+- Bilingual Power BI report with six pages, ES/EN toggle, alt text, accessible
+  colors, top-10 charts for 65 careers / 24 skills / 83 companies, and a
+  clear-filters action.
+- E2E suite with a medium-to-hard synthetic fixture set and reproducible
+  artifacts.
 
-## Verified metrics (fixture snapshot, `--as-of 2026-10-29`)
+## Release assets
 
-| Metric | Value |
-|---|---|
-| Offers processed | 12 |
-| Companies | 10 |
-| Careers | 3 |
-| Skills | 21 |
-| Quality score | 94.3% |
-| Offers expiring within 7 days | 1 |
-| Pipeline runtime | ~1.5 s including PostgreSQL |
+- `practilizate-v0.1.1-live-evidence.zip` — live `run_manifest.json`,
+  `quality_report.json`, ingest/load/export summaries, and aggregate metadata.
+  It does **not** include the raw offer CSV, normalized offer JSON, Excel
+  workbook, or support bridge CSVs.
+- `practilizate-v0.1.1-e2e-fixtures.zip` — synthetic E2E artifacts
+  (`run_manifest.json`, `quality_report.json`, `practilizate.xlsx`,
+  `dashboard_dataset.csv`, support CSVs, and checksums). This is test data,
+  not the live snapshot.
+- Both assets include SHA-256 checksum files.
 
-Quality report: 10 warning rules, no critical failures.
-
-## Artifacts
-
-The release asset is the E2E bundle `practilizate-v0.1.0-e2e.zip`, built from
-`artifacts/e2e/` and containing:
-
-- `run_manifest.json`
-- `quality_report.json`
-- `normalized_offers.json`
-- `database_load.json`
-- `export_report.json`
-- `practilizate.xlsx`
-- `dashboard_dataset.csv`
-- Power BI support CSVs (`offer_careers.csv`, `offer_skills.csv`, `quality_rules.csv`, `run_metadata.csv`, `dim_idioma.csv`, `dim_estado.csv`)
-- `checksums.sha256`
+The live CSV and Excel workbook remain local in `data/processed/` and are not
+published in the public repository. The public screenshots show aggregate
+counts only.
 
 ## Screenshots
 
@@ -62,7 +74,14 @@ python -m practilizate run --source fixtures --as-of 2026-10-29
 pytest tests/e2e
 ```
 
+For the live snapshot:
+
+```powershell
+python -m practilizate run --source live --as-of 2026-10-29
+```
+
 Open `powerbi/practilizate.pbip` after the pipeline writes `data/processed/`.
+The semantic model reads the snapshot through the `DataFolder` parameter.
 
 ## Data source and scope
 
@@ -73,6 +92,9 @@ personal data are not included. See `DATA_SOURCES.md` and `NOTICE.md`.
 
 ## Known notes
 
-- Fixture counts are deterministic and smaller than a live snapshot.
-- The Power BI model reads the snapshot through the `DataFolder` parameter; update it if the repository moves.
-- The live source depends on the public site structure; the fixtures protect the test suite.
+- The live snapshot is point-in-time; counts and expiring offers change.
+- The skill lexicon covers 24 canonical skills. Expanding it is a v0.2 task.
+- Missing salary and duplicate content are visible in the quality report, not
+  silently removed.
+- The E2E suite uses synthetic fixtures for deterministic CI and never calls
+  the public site.

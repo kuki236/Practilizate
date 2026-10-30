@@ -1,5 +1,9 @@
 # Fixtures and Expected Outcomes
 
+> **E2E only.** These are synthetic records for deterministic tests and CI.
+> They are not the live dashboard snapshot. Live metrics are reported in
+> `README.md` and `docs/heuristics-review.md` for `live-20261029`.
+
 The fixture set is synthetic. It imitates the practicas.pe search and detail pages so the
 real parser is exercised without scraping during tests. Files live under `data/fixtures/`.
 

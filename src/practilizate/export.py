@@ -568,7 +568,7 @@ def write_excel(offers: list[Offer], context: ExportContext, path: Path) -> int:
     wb.calculation.fullCalcOnLoad = True
     wb.calculation.forceFullCalc = True
 
-    careers_by_count = [name for name, _ in career_counts.most_common(10)]
+    all_careers = [name for name, _ in career_counts.most_common()]
     skills_by_count = [row[0] for row in _skill_rows(ordered)]
 
     listas = wb.create_sheet("Listas")
@@ -577,7 +577,7 @@ def write_excel(offers: list[Offer], context: ExportContext, path: Path) -> int:
     listas["B1"] = "Habilidades"
     listas["C1"] = "Empresas"
     listas["D1"] = "Estados"
-    for row_index, career in enumerate(careers_by_count, start=2):
+    for row_index, career in enumerate(all_careers, start=2):
         listas.cell(row=row_index, column=1, value=career)
     for row_index, skill in enumerate(skills_by_count, start=2):
         listas.cell(row=row_index, column=2, value=skill)
@@ -603,7 +603,7 @@ def write_excel(offers: list[Offer], context: ExportContext, path: Path) -> int:
         habilidades,
         ordered,
         skill_rows=_skill_rows(ordered),
-        careers_by_count=careers_by_count,
+        careers_by_count=all_careers,
     )
 
     empresas = wb.create_sheet("Empresas")
@@ -621,7 +621,7 @@ def write_excel(offers: list[Offer], context: ExportContext, path: Path) -> int:
 
     wb.defined_names["ListaCarreras"] = DefinedName(
         "ListaCarreras",
-        attr_text=f"Listas!$A$2:$A${max(2, len(careers_by_count) + 1)}",
+        attr_text=f"Listas!$A$2:$A${max(2, len(all_careers) + 1)}",
     )
 
     wb.move_sheet("Portada", offset=-wb.sheetnames.index("Portada"))

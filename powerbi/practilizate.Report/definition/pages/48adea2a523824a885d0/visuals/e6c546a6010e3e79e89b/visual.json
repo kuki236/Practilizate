@@ -3,9 +3,9 @@
   "name": "e6c546a6010e3e79e89b",
   "position": {
     "x": 654,
-    "y": 272,
+    "y": 288,
     "z": 1007,
-    "height": 404,
+    "height": 388,
     "width": 602,
     "tabOrder": 1007
   },
@@ -351,7 +351,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Subvención promedio por empresa'"
+                  "Value": "'Subvención promedio · Top 10 empresas'"
                 }
               }
             },
@@ -391,5 +391,124 @@
         }
       ]
     }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filterea0d8b16c79e71ed0b3732ea",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Ofertas"
+              }
+            },
+            "Property": "company"
+          }
+        },
+        "type": "TopN",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "subquery",
+              "Expression": {
+                "Subquery": {
+                  "Query": {
+                    "Version": 2,
+                    "From": [
+                      {
+                        "Name": "c",
+                        "Entity": "Ofertas",
+                        "Type": 0
+                      }
+                    ],
+                    "Select": [
+                      {
+                        "Column": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Source": "c"
+                            }
+                          },
+                          "Property": "company"
+                        },
+                        "Name": "field"
+                      }
+                    ],
+                    "OrderBy": [
+                      {
+                        "Direction": 2,
+                        "Expression": {
+                          "Aggregation": {
+                            "Expression": {
+                              "Column": {
+                                "Expression": {
+                                  "SourceRef": {
+                                    "Source": "c"
+                                  }
+                                },
+                                "Property": "offer_id"
+                              }
+                            },
+                            "Function": 2
+                          }
+                        }
+                      },
+                      {
+                        "Direction": 1,
+                        "Expression": {
+                          "Column": {
+                            "Expression": {
+                              "SourceRef": {
+                                "Source": "c"
+                              }
+                            },
+                            "Property": "company"
+                          }
+                        }
+                      }
+                    ],
+                    "Top": 10
+                  }
+                }
+              },
+              "Type": 2
+            },
+            {
+              "Name": "outer",
+              "Entity": "Ofertas",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "outer"
+                          }
+                        },
+                        "Property": "company"
+                      }
+                    }
+                  ],
+                  "Table": {
+                    "SourceRef": {
+                      "Source": "subquery"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      }
+    ]
   }
 }

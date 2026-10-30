@@ -3,9 +3,9 @@
   "name": "e80284a17660f82dcc61",
   "position": {
     "x": 24,
-    "y": 272,
+    "y": 288,
     "z": 1008,
-    "height": 404,
+    "height": 388,
     "width": 610,
     "tabOrder": 1008
   },
@@ -351,7 +351,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Ofertas por carrera'"
+                  "Value": "'Top 10 carreras por ofertas'"
                 }
               }
             },
@@ -391,5 +391,124 @@
         }
       ]
     }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filterd887ce1eeb4754a751f621d1",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Carreras"
+              }
+            },
+            "Property": "career_name"
+          }
+        },
+        "type": "TopN",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "subquery",
+              "Expression": {
+                "Subquery": {
+                  "Query": {
+                    "Version": 2,
+                    "From": [
+                      {
+                        "Name": "c",
+                        "Entity": "Carreras",
+                        "Type": 0
+                      }
+                    ],
+                    "Select": [
+                      {
+                        "Column": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Source": "c"
+                            }
+                          },
+                          "Property": "career_name"
+                        },
+                        "Name": "field"
+                      }
+                    ],
+                    "OrderBy": [
+                      {
+                        "Direction": 2,
+                        "Expression": {
+                          "Aggregation": {
+                            "Expression": {
+                              "Column": {
+                                "Expression": {
+                                  "SourceRef": {
+                                    "Source": "c"
+                                  }
+                                },
+                                "Property": "offer_id"
+                              }
+                            },
+                            "Function": 2
+                          }
+                        }
+                      },
+                      {
+                        "Direction": 1,
+                        "Expression": {
+                          "Column": {
+                            "Expression": {
+                              "SourceRef": {
+                                "Source": "c"
+                              }
+                            },
+                            "Property": "career_name"
+                          }
+                        }
+                      }
+                    ],
+                    "Top": 10
+                  }
+                }
+              },
+              "Type": 2
+            },
+            {
+              "Name": "outer",
+              "Entity": "Carreras",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "outer"
+                          }
+                        },
+                        "Property": "career_name"
+                      }
+                    }
+                  ],
+                  "Table": {
+                    "SourceRef": {
+                      "Source": "subquery"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      }
+    ]
   }
 }

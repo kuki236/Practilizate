@@ -4,7 +4,7 @@
 
 Practilizate convierte avisos públicos de prácticas en un producto de datos reproducible: un modelo estrella validado en PostgreSQL, un dashboard en Power BI, un libro Excel y un informe de calidad de datos.
 
-> **Estado:** v0.1 completa. El pipeline de fixtures, el modelo estrella en PostgreSQL, el libro Excel, el reporte bilingüe en Power BI y los artefactos E2E están en el repositorio.
+> **Estado:** v0.1.1 con snapshot live (`live-20261029`). El modelo estrella en PostgreSQL, el libro Excel, el reporte bilingüe en Power BI y los artefactos E2E están en el repositorio.
 > **English:** [README.md](README.md)
 
 ## Por qué Practilizate
@@ -77,6 +77,8 @@ Los datos provienen de avisos públicos de [practicas.pe](https://www.practicas.
 - Practilizate **no está afiliado** a practicas.pe.
 - Se usan datos públicos con fines educativos y de investigación.
 - Solo se publican datos agregados. No se incluyen HTML crudo ni datos personales.
+- El CSV y el libro Excel live quedan fuera de Git (`data/processed/`); las
+  capturas públicas solo muestran conteos agregados.
 - El recolector respeta `robots.txt`, límites de tasa y caché.
 - Ver [DATA_SOURCES.md](DATA_SOURCES.md) y [NOTICE.md](NOTICE.md).
 
@@ -95,9 +97,15 @@ pytest tests/e2e
 ```
 
 El modo `fixtures` es determinista y no llama al sitio en vivo.
+Para el snapshot live:
+
+```powershell
+python -m practilizate run --source live --as-of 2026-10-29
+```
+
 Docker Compose publica PostgreSQL en el puerto **5433**; `.env.example` ya usa
-ese puerto. `python -m practilizate ingest --source live` usa el sitio público
-con caché y un límite de tasa configurable.
+ese puerto. La ingesta live usa caché, un límite de tasa configurable y el
+filtro de carreras del sitio (65 carreras en la fecha del snapshot).
 
 ## Power BI
 
@@ -123,10 +131,11 @@ El libro se genera en `data/processed/practilizate.xlsx` e incluye:
 
 ## Testing
 
-- Solo E2E. Sin unit tests.
+- Solo E2E. Sin tests unitarios.
 - El E2E ejecuta el pipeline completo contra una base PostgreSQL desechable.
-- Usa un escenario medio-difícil: ofertas multi-carrera, duplicados, sueldo faltante, fechas inválidas, outliers y campos faltantes.
-- Cada ejecución escribe un artefacto repetible en `artifacts/e2e/`:
+- Usa un escenario **sintético** medio-difícil: ofertas multi-carrera, duplicados, sueldo faltante, fechas inválidas, outliers y campos faltantes.
+- El snapshot live se valida aparte; CI no consulta el sitio público.
+- Cada ejecución E2E escribe un artefacto sintético repetible en `artifacts/e2e/`:
 
 ```text
 artifacts/e2e/
@@ -151,21 +160,26 @@ el release adjunta el paquete.
 
 ## Resultados
 
-> Snapshot de fixtures (`--as-of 2026-10-29`). El modo en vivo produce otros conteos.
+> Snapshot live `live-20261029` (`--source live --as-of 2026-10-29`), obtenido
+> del sitio público con límite de 1 s. Los conteos son de un momento dado.
 
 | Métrica | Valor |
 |---|---|
-| Ofertas procesadas | 12 |
-| Empresas | 10 |
-| Carreras | 3 |
-| Habilidades | 21 |
-| Calidad de datos | 94.3% |
-| Ofertas que vencen en 7 días | 1 |
-| Tiempo del pipeline | ~1.5 s (fixture, PostgreSQL incluido) |
+| Ofertas procesadas | 389 |
+| Empresas | 83 |
+| Carreras | 65 |
+| Habilidades | 24 |
+| Calidad de datos | 97.7% |
+| Ofertas que vencen en 7 días | 330 |
+| Tiempo del pipeline | 530.6 s (~8.8 min, PostgreSQL incluido) |
 
-El informe de calidad marca 10 reglas con advertencias y ninguna regla crítica.
-Ver [docs/fixtures.md](docs/fixtures.md) para los resultados esperados y
-[docs/data-dictionary.md](docs/data-dictionary.md) para las definiciones.
+El informe de calidad marca 3 reglas con advertencias y ninguna regla crítica:
+R06 (1 oferta con vencimiento anterior a la publicación), R14 (38 grupos
+duplicados por título + empresa + vencimiento) y R15 (113 ofertas con requisitos
+detallados pero sin habilidad del léxico). La subvención se publica en 156 de
+389 ofertas; los promedios excluyen faltantes y valores atípicos mayores a
+S/ 12,000. Ver [docs/fixtures.md](docs/fixtures.md) para el contrato E2E
+sintético y [docs/data-dictionary.md](docs/data-dictionary.md) para los campos.
 
 ## Heurísticas de Nielsen
 
@@ -206,7 +220,15 @@ practilizate/
 ## Limitaciones
 
 - v0.1 cubre Lima y prácticas preprofesionales.
-- Los avisos pueden no publicar sueldo, fecha límite o requisitos detallados.
+- Los avisos pueden no publicar sueldo, fecha límite o requisitos detallados. En
+  el snapshot live, 233 de 389 ofertas no publican subvención.
+- El léxico de habilidades cubre 24 habilidades canónicas; 113 ofertas live
+  tienen requisitos detallados pero ninguna coincidencia. Ampliar el léxico es
+  una tarea de v0.2.
+- El snapshot live es de un momento dado; 330 ofertas vencen dentro de 7 días
+  de la fecha de corte porque muchas fechas límite se concentran.
+- R14 marca 38 grupos duplicados por título + empresa + vencimiento; se mantienen
+  visibles para auditoría en lugar de eliminarse en silencio.
 - La estructura del sitio puede cambiar; los fixtures protegen el test suite.
 - Es un observatorio, no un tracker de postulaciones.
 - La calidad de datos se reporta, no se oculta.

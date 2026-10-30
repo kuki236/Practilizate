@@ -433,6 +433,93 @@ def language_slicer(visual_id: str) -> dict:
     }
 
 
+def topn_filter(table: str, column_name: str, top: int = 10, alias: str = "c") -> dict:
+    token = hashlib.sha256(f"topn:{table}.{column_name}".encode()).hexdigest()[:24]
+    return {
+        "name": "Filter" + token,
+        "field": {
+            "Column": {
+                "Expression": {"SourceRef": {"Entity": table}},
+                "Property": column_name,
+            }
+        },
+        "type": "TopN",
+        "filter": {
+            "Version": 2,
+            "From": [
+                {
+                    "Name": "subquery",
+                    "Expression": {
+                        "Subquery": {
+                            "Query": {
+                                "Version": 2,
+                                "From": [{"Name": alias, "Entity": table, "Type": 0}],
+                                "Select": [
+                                    {
+                                        "Column": {
+                                            "Expression": {"SourceRef": {"Source": alias}},
+                                            "Property": column_name,
+                                        },
+                                        "Name": "field",
+                                    }
+                                ],
+                                "OrderBy": [
+                                    {
+                                        "Direction": 2,
+                                        "Expression": {
+                                            "Aggregation": {
+                                                "Expression": {
+                                                    "Column": {
+                                                        "Expression": {
+                                                            "SourceRef": {"Source": alias}
+                                                        },
+                                                        "Property": "offer_id",
+                                                    }
+                                                },
+                                                "Function": 2,
+                                            }
+                                        },
+                                    },
+                                    {
+                                        "Direction": 1,
+                                        "Expression": {
+                                            "Column": {
+                                                "Expression": {"SourceRef": {"Source": alias}},
+                                                "Property": column_name,
+                                            }
+                                        },
+                                    },
+                                ],
+                                "Top": top,
+                            }
+                        }
+                    },
+                    "Type": 2,
+                },
+                {"Name": "outer", "Entity": table, "Type": 0},
+            ],
+            "Where": [
+                {
+                    "Condition": {
+                        "In": {
+                            "Expressions": [
+                                {
+                                    "Column": {
+                                        "Expression": {"SourceRef": {"Source": "outer"}},
+                                        "Property": column_name,
+                                    }
+                                }
+                            ],
+                            "Table": {"SourceRef": {"Source": "subquery"}},
+                        }
+                    }
+                }
+            ],
+        },
+        "howCreated": "User",
+    }
+
+
 def bar_chart(
     visual_id: str,
     x: int,
@@ -450,9 +537,12 @@ def bar_chart(
     sort_desc: bool = True,
     category_size: int = 9,
     horizontal: bool = True,
+    top_n_table: str | None = None,
+    top_n_column: str | None = None,
+    top_n: int = 10,
 ) -> dict:
     visual_type = "barChart" if horizontal else "columnChart"
-    return {
+    visual_payload = {
         "$schema": SCHEMA_VISUAL,
         "name": visual_id,
         "position": position(x, y, width, height, order),
@@ -504,6 +594,11 @@ def bar_chart(
             "visualContainerObjects": vco(title=title),
         },
     }
+    if top_n_table and top_n_column:
+        visual_payload["filterConfig"] = {
+            "filters": [topn_filter(top_n_table, top_n_column, top_n)]
+        }
+    return visual_payload
 
 
 def status_donut(visual_id: str) -> dict:
@@ -519,6 +614,100 @@ def status_donut(visual_id: str) -> dict:
                 sort=sort_by_field("Estado", "orden", "Ascending"),
             ),
             "objects": {
+                "dataPoint": [
+                    {
+                        "properties": {"fill": fill(GREEN)},
+                        "selector": {
+                            "data": [
+                                {
+                                    "scopeId": {
+                                        "Comparison": {
+                                            "ComparisonKind": 0,
+                                            "Left": {
+                                                "Column": {
+                                                    "Expression": {
+                                                        "SourceRef": {"Entity": "Estado"}
+                                                    },
+                                                    "Property": "label_es",
+                                                }
+                                            },
+                                            "Right": {"Literal": {"Value": "'Vigente'"}},
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                    },
+                    {
+                        "properties": {"fill": fill(AMBER)},
+                        "selector": {
+                            "data": [
+                                {
+                                    "scopeId": {
+                                        "Comparison": {
+                                            "ComparisonKind": 0,
+                                            "Left": {
+                                                "Column": {
+                                                    "Expression": {
+                                                        "SourceRef": {"Entity": "Estado"}
+                                                    },
+                                                    "Property": "label_es",
+                                                }
+                                            },
+                                            "Right": {"Literal": {"Value": "'Por vencer'"}},
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                    },
+                    {
+                        "properties": {"fill": fill(RED)},
+                        "selector": {
+                            "data": [
+                                {
+                                    "scopeId": {
+                                        "Comparison": {
+                                            "ComparisonKind": 0,
+                                            "Left": {
+                                                "Column": {
+                                                    "Expression": {
+                                                        "SourceRef": {"Entity": "Estado"}
+                                                    },
+                                                    "Property": "label_es",
+                                                }
+                                            },
+                                            "Right": {"Literal": {"Value": "'Vencida'"}},
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                    },
+                    {
+                        "properties": {"fill": fill(GREY)},
+                        "selector": {
+                            "data": [
+                                {
+                                    "scopeId": {
+                                        "Comparison": {
+                                            "ComparisonKind": 0,
+                                            "Left": {
+                                                "Column": {
+                                                    "Expression": {
+                                                        "SourceRef": {"Entity": "Estado"}
+                                                    },
+                                                    "Property": "label_es",
+                                                }
+                                            },
+                                            "Right": {"Literal": {"Value": "'Sin fecha'"}},
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                    },
+                ],
                 "labels": [
                     {
                         "properties": {
@@ -556,8 +745,9 @@ def table_visual(
     order: int,
     sort: dict | None = None,
     font_size: int = 9,
+    filter_config: dict | None = None,
 ) -> dict:
-    return {
+    payload = {
         "$schema": SCHEMA_VISUAL,
         "name": visual_id,
         "position": position(x, y, width, height, order),
@@ -588,6 +778,9 @@ def table_visual(
             "visualContainerObjects": vco(title=title),
         },
     }
+    if filter_config is not None:
+        payload["filterConfig"] = filter_config
+    return payload
 
 
 def slicer(
@@ -842,7 +1035,7 @@ def build_skills() -> list[dict]:
             268,
             456,
             408,
-            "Cobertura por carrera",
+            "Top 10 carreras por cobertura",
             [
                 column("Carreras", "career_name"),
                 measure("Ofertas", "Habilidades"),
@@ -850,6 +1043,7 @@ def build_skills() -> list[dict]:
             ],
             order=3,
             sort=sort_by_field("Carreras", "career_name", "Ascending"),
+            filter_config={"filters": [topn_filter("Carreras", "career_name", 10)]},
         ),
         updated_card(page),
         footer(digest(f"{page}:footer")),
@@ -1323,6 +1517,95 @@ def ensure_project_schemas() -> None:
         )
 
 
+def _title_text(visual: dict) -> str | None:
+    title = visual.get("visual", {}).get("visualContainerObjects", {}).get("title", [])
+    for entry in title:
+        value = (
+            entry.get("properties", {})
+            .get("text", {})
+            .get("expr", {})
+            .get("Literal", {})
+            .get("Value")
+        )
+        if isinstance(value, str):
+            return value.strip("'")
+    return None
+
+
+def _set_title(visual: dict, value: str) -> None:
+    title = (
+        visual.setdefault("visual", {})
+        .setdefault("visualContainerObjects", {})
+        .setdefault("title", [])
+    )
+    if not title:
+        title.append({"properties": {}})
+    properties = title[0].setdefault("properties", {})
+    properties["text"] = text(value)
+
+
+def normalize_visuals() -> None:
+    for visual_path in PAGES_DIR.glob("*/visuals/*/visual.json"):
+        visual = json.loads(visual_path.read_text(encoding="utf-8"))
+        content = visual.get("visual", {})
+        visual_type = content.get("visualType")
+        position_data = visual.get("position", {})
+        if (
+            visual_type == "cardVisual"
+            and position_data.get("y") == 176
+            and position_data.get("height") == 84
+        ):
+            position_data["height"] = 100
+        if (
+            visual_type in {"barChart", "donutChart", "tableEx"}
+            and position_data.get("y") == 272
+            and position_data.get("height") == 404
+        ):
+            position_data["y"] = 288
+            position_data["height"] = 388
+
+        title = _title_text(visual)
+        if visual_type == "barChart" and title == "Ofertas por carrera":
+            _set_title(visual, "Top 10 carreras por ofertas")
+            visual.setdefault(
+                "filterConfig", {"filters": [topn_filter("Carreras", "career_name", 10)]}
+            )
+        elif visual_type == "barChart" and title in {
+            "Top habilidades por ofertas",
+            "Top 10 habilidades por ofertas",
+        }:
+            _set_title(visual, "Top 10 habilidades por ofertas")
+            visual.setdefault(
+                "filterConfig", {"filters": [topn_filter("Habilidades", "skill", 10)]}
+            )
+        elif visual_type == "barChart" and title == "Empresas con más ofertas":
+            _set_title(visual, "Top 10 empresas por ofertas")
+            visual.setdefault("filterConfig", {"filters": [topn_filter("Ofertas", "company", 10)]})
+        elif visual_type == "barChart" and title == "Subvención promedio por empresa":
+            _set_title(visual, "Subvención promedio · Top 10 empresas")
+            visual.setdefault("filterConfig", {"filters": [topn_filter("Ofertas", "company", 10)]})
+        elif visual_type == "tableEx" and title == "Cobertura por carrera":
+            _set_title(visual, "Top 10 carreras por cobertura")
+            visual.setdefault(
+                "filterConfig", {"filters": [topn_filter("Carreras", "career_name", 10)]}
+            )
+
+        for index, filter_definition in enumerate(
+            visual.get("filterConfig", {}).get("filters", [])
+        ):
+            if filter_definition.get("type") == "TopN":
+                filter_definition["name"] = (
+                    "Filter"
+                    + hashlib.sha256(f"topn:{visual['name']}:{index}".encode()).hexdigest()[:24]
+                )
+
+        visual_path.write_text(
+            json.dumps(visual, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+            newline="\n",
+        )
+
+
 def main() -> None:
     PAGES_DIR.mkdir(parents=True, exist_ok=True)
     THEMES_DIR.mkdir(parents=True, exist_ok=True)
@@ -1416,6 +1699,7 @@ def main() -> None:
         newline="\n",
     )
     ensure_project_schemas()
+    normalize_visuals()
     sys.stdout.write(f"pages={len(page_ids)} theme={theme_name}\n")
 
 

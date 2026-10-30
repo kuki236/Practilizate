@@ -53,7 +53,11 @@ def test_powerbi_project_is_complete() -> None:
         path = REPO_ROOT / "docs" / "assets" / screenshot
         assert path.is_file()
         with Image.open(path) as image:
-            assert image.size == (1148, 646)
+            expected = {
+                "dashboard-es.png": (961, 540),
+                "dashboard-en.png": (800, 450),
+            }[screenshot]
+            assert image.size == expected
             assert image.format == "PNG"
 
     review = (REPO_ROOT / "docs" / "heuristics-review.md").read_text(encoding="utf-8")

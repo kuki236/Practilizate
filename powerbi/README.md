@@ -115,7 +115,12 @@ The model is edited through the `powerbi-modeling` MCP and exported to
 `practilizate.SemanticModel/definition`; do not hand-edit the TMDL while the
 model is loaded in the MCP.
 
-## Screenshots
+## Snapshot and screenshots
+
+The checked-in screenshots use the live `live-20261029` snapshot: 389 offers,
+83 companies, 65 careers, 24 skills, 97.7% quality, and 330 offers expiring
+within 7 days. The report uses top-10 charts for careers, skills, and companies
+so 65 careers and 83 companies remain readable.
 
 - `docs/assets/dashboard-es.png`
 - `docs/assets/dashboard-en.png`
