@@ -2,9 +2,9 @@
 
 **Observatorio de prácticas preprofesionales del Perú.**
 
-Practilizate convierte avisos públicos de prácticas en un producto de datos reproducible: un modelo estrella validado en PostgreSQL, un dashboard en Power BI, un libro Excel y un informe de calidad de datos.
+Practilizate convierte avisos públicos de prácticas en un producto de datos reproducible: un modelo estrella validado en PostgreSQL, un dashboard en Power BI, un libro Excel, un reporte HTML portátil y un informe de calidad de datos.
 
-> **Estado:** v0.1.2 con snapshot live (`live-20261029`). El modelo estrella en PostgreSQL, el libro Excel, el reporte bilingüe en Power BI y los artefactos E2E están en el repositorio.
+> **Estado:** v0.1.3 con snapshot live (`live-20261029`). El modelo estrella en PostgreSQL, el libro Excel, el reporte bilingüe en Power BI, el reporte HTML offline y los artefactos E2E están en el repositorio.
 > **English:** [README.md](README.md)
 
 ## Por qué Practilizate
@@ -29,6 +29,7 @@ El análisis inicial de 73 ofertas era solo de Ingeniería de Sistemas en Lima. 
 - Modelo estrella en PostgreSQL con tablas puente de carrera y habilidad.
 - Reporte Power BI con toggle español/inglés.
 - Libro Excel en español.
+- Reporte HTML offline con búsqueda, filtros y toggle español/inglés.
 - Test E2E repetible con artefacto y manifiesto.
 - Documentación bilingüe.
 
@@ -51,6 +52,7 @@ practicas.pe
     |
     +--> [export] dashboard_dataset.csv
     +--> [export] practilizate.xlsx
+    +--> [export] practilizate.html
     +--> [powerbi] practilizate.pbip
 ```
 
@@ -64,11 +66,13 @@ practicas.pe
 
 ![Informe de calidad de datos](docs/assets/quality-report.png)
 
+![Reporte HTML portátil](docs/assets/html-report.png)
+
 - Dashboard en español: `docs/assets/dashboard-es.png`
 - Dashboard en inglés: `docs/assets/dashboard-en.png`
 - Resumen Excel: `docs/assets/excel-summary.png`
 - Informe de calidad: `docs/assets/quality-report.png`
-- Guía de Power BI: [powerbi/README.md](powerbi/README.md)
+- Reporte HTML portátil (vista agregada): `docs/assets/html-report.png`
 
 ## Fuente y atribución
 
@@ -113,7 +117,8 @@ filtro de carreras del sitio (65 carreras en la fecha del snapshot).
 
 Abre el release de GitHub, las capturas y `powerbi/practilizate.pbip` en Power
 BI Desktop. El PBIP contiene la definición del reporte; guárdalo como `.pbix`
-si necesitas un archivo único.
+si necesitas un archivo único. También puedes abrir el `practilizate.html`
+generado en cualquier navegador: es un solo archivo sin dependencias externas.
 
 **2. Ejecutar el pipeline localmente**
 
@@ -122,6 +127,7 @@ verificar la instalación. Usa `--source live` para avisos reales.
 
 **3. Usar los entregables**
 
+- `data/processed/practilizate.html` — reporte portátil con búsqueda, filtros y toggle ES/EN.
 - `data/processed/practilizate.xlsx` — libro en español para estudiantes y centros de empleabilidad.
 - `data/processed/dashboard_dataset.csv` — snapshot para Power BI/analistas.
 - `powerbi/practilizate.pbip` — fuente del reporte bilingüe.
@@ -129,11 +135,12 @@ verificar la instalación. Usa `--source live` para avisos reales.
 
 **4. Compartirlo en línea**
 
-El producto actual es un flujo local CLI + Power BI Desktop + Excel, no una
-aplicación web alojada. Para compartir el dashboard, publica el PBIP en un
-workspace de Power BI (requiere cuenta/licencia) o monta una aplicación web
-sobre el CSV/PostgreSQL. El repositorio público publica capturas y evidencia
-agregada; el CSV/Excel live quedan locales.
+El reporte HTML es la forma más liviana de compartir el snapshot: envía un solo
+archivo o súbelo a cualquier sitio estático; no necesita servidor, cuenta ni
+conexión a internet. Para análisis interactivo, publica el PBIP en un workspace
+de Power BI (requiere cuenta/licencia) o monta una aplicación sobre el
+CSV/PostgreSQL. El repositorio público publica capturas y evidencia agregada;
+el CSV, Excel y HTML live quedan locales.
 
 **5. Automatizar una actualización**
 
@@ -149,7 +156,7 @@ Abre `powerbi/practilizate.pbip` en Power BI Desktop y guárdalo como `.pbix` si
 - El modelo lee el snapshot mediante el parámetro `DataFolder`; actualízalo si mueves el repositorio.
 - Las seis páginas cubren resumen ejecutivo, habilidades, empresas y subvenciones, vencimientos, calidad y una guía bilingüe.
 - El reporte incluye toggle ES/EN (tabla `Idioma` y medidas `SWITCH`), texto alternativo, colores accesibles, pie de fuente y botón `Limpiar filtros`.
-- PostgreSQL queda documentado como fuente opcional en vivo en [powerbi/README.md](powerbi/README.md).
+- PostgreSQL queda como fuente opcional en vivo para analistas que prefieran SQL.
 
 ## Excel
 
@@ -162,6 +169,17 @@ El libro se genera en `data/processed/practilizate.xlsx` e incluye:
 - `Empresas`
 - `Calidad`
 - `Diccionario`
+
+## Reporte HTML portátil
+
+Cada ejecución también escribe `data/processed/practilizate.html`:
+
+- Un solo archivo autocontenido: CSS y JavaScript inline, sin CDN ni llamadas de red.
+- Búsqueda por cargo, empresa, carrera o habilidad; filtros por carrera, estado y disponibilidad de subvención.
+- Tarjetas KPI, barras de demanda por carrera y habilidad, y ofertas con vencimiento y subvención.
+- Toggle español/inglés y diseño listo para imprimir o exportar a PDF.
+- Sin texto de requisitos, correos ni teléfonos; solo campos públicos del aviso.
+- Se regenera desde un run existente con `python -m practilizate export --format html`.
 
 ## Testing
 
@@ -179,6 +197,7 @@ artifacts/e2e/
 ├─ database_load.json
 ├─ export_report.json
 ├─ practilizate.xlsx
+├─ practilizate.html
 ├─ dashboard_dataset.csv
 ├─ offer_careers.csv
 ├─ offer_skills.csv
@@ -212,31 +231,19 @@ R06 (1 oferta con vencimiento anterior a la publicación), R14 (38 grupos
 duplicados por título + empresa + vencimiento) y R15 (113 ofertas con requisitos
 detallados pero sin habilidad del léxico). La subvención se publica en 156 de
 389 ofertas; los promedios excluyen faltantes y valores atípicos mayores a
-S/ 12,000. Ver [docs/fixtures.md](docs/fixtures.md) para el contrato E2E
-sintético y [docs/data-dictionary.md](docs/data-dictionary.md) para los campos.
-
-## Heurísticas de Nielsen
-
-El producto sigue las 10 heurísticas de usabilidad documentadas en [docs/heuristics.md](docs/heuristics.md). La evidencia está completa en [docs/heuristics-review.md](docs/heuristics-review.md), con las capturas, el libro Excel, el informe de calidad y el manifiesto E2E.
-
-## Diccionario de datos
-
-Las definiciones del modelo estrella, el CSV, el informe de calidad y el manifiesto están en [docs/data-dictionary.md](docs/data-dictionary.md).
+S/ 12,000. El libro Excel incluye una hoja de diccionario de datos y el reporte
+HTML muestra los mismos indicadores agregados sin texto de requisitos.
 
 ## Estructura del proyecto
 
 ```text
 practilizate/
-├─ AGENTS.md
-├─ SPECS.md
-├─ ROADMAP.md
 ├─ README.md
 ├─ README.es.md
-├─ CODESTYLE.md
 ├─ DATA_SOURCES.md
 ├─ NOTICE.md
 ├─ LICENSE
-├─ docs/
+├─ docs/assets/
 ├─ src/practilizate/
 ├─ sql/
 ├─ tests/e2e/

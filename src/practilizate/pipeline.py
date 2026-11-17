@@ -2,7 +2,7 @@ import json
 import re
 import sys
 import time
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from pydantic import BaseModel
@@ -20,6 +20,7 @@ from practilizate.ingest import ingest_offers
 from practilizate.logging import get_logger
 from practilizate.models import IngestResult, Offer, QualityReport
 from practilizate.quality import evaluate_quality
+from practilizate.report import write_html_report
 from practilizate.sources import FixtureSource, OfferSource, SourceError
 
 LOGGER = get_logger("practilizate.pipeline")
@@ -217,6 +218,7 @@ def run_command(settings: Settings, args, run_dir: Path) -> int:
             output_dir.mkdir(parents=True, exist_ok=True)
             csv_path = output_dir / "dashboard_dataset.csv"
             excel_path = output_dir / "practilizate.xlsx"
+            html_path = output_dir / "practilizate.html"
             context = ExportContext(
                 run_id=run_id,
                 source=result.source,
@@ -229,23 +231,31 @@ def run_command(settings: Settings, args, run_dir: Path) -> int:
             csv_rows = write_dashboard_csv(result.offers, csv_path, result.as_of)
             support_counts = write_powerbi_support_csvs(result.offers, context, output_dir)
             excel_sheets = write_excel(result.offers, context, excel_path)
+            html_offers = write_html_report(result.offers, context, html_path)
             write_json(
                 run_dir / "export_report.json",
                 {
                     "run_id": run_id,
                     "csv": {"path": str(csv_path), "rows": csv_rows},
                     "excel": {"path": str(excel_path), "sheets": excel_sheets},
+                    "html": {"path": str(html_path), "offers": html_offers},
                 },
             )
             stages["export"] = {
                 "csv_rows": csv_rows,
                 "excel_sheets": excel_sheets,
+                "html_offers": html_offers,
                 "support_csvs": support_counts,
             }
             artifacts["dashboard_csv"] = "dashboard_dataset.csv"
             artifacts["excel"] = "practilizate.xlsx"
+            artifacts["html"] = "practilizate.html"
             artifacts["export_report"] = "export_report.json"
-            outputs = {"dashboard_csv": str(csv_path), "excel": str(excel_path)}
+            outputs = {
+                "dashboard_csv": str(csv_path),
+                "excel": str(excel_path),
+                "html": str(html_path),
+            }
         except Exception as error:
             LOGGER.exception("export failed", extra={"run_id": run_id})
             stages["export"] = {"status": "failed", "error_type": type(error).__name__}
@@ -326,13 +336,15 @@ def export_command(settings: Settings, args) -> int:
     output_dir = Path(getattr(args, "output_dir", None) or settings.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     formats = {part.strip().lower() for part in str(args.format).split(",") if part.strip()}
-    unknown = formats - {"excel", "csv"}
+    unknown = formats - {"excel", "csv", "html"}
     if unknown:
         raise PipelineError(f"unknown export format: {', '.join(sorted(unknown))}")
+    as_of_value = payload.get("as_of")
+    as_of = date.fromisoformat(str(as_of_value)) if as_of_value else settings.as_of
     context = ExportContext(
         run_id=run_id,
         source=str(manifest.get("source", payload.get("source", settings.source))),
-        as_of=settings.as_of,
+        as_of=as_of,
         generated_at=datetime.now(UTC).replace(tzinfo=None),
         runtime_seconds=float(manifest.get("runtime_seconds", 0.0)),
         quality=quality,
@@ -340,11 +352,14 @@ def export_command(settings: Settings, args) -> int:
     )
     result: dict[str, object] = {}
     if "csv" in formats:
-        rows = write_dashboard_csv(offers, output_dir / "dashboard_dataset.csv", settings.as_of)
+        rows = write_dashboard_csv(offers, output_dir / "dashboard_dataset.csv", as_of)
         support = write_powerbi_support_csvs(offers, context, output_dir)
         result["csv"] = {"rows": rows, "support": support}
     if "excel" in formats:
         sheets = write_excel(offers, context, output_dir / "practilizate.xlsx")
         result["excel"] = {"sheets": sheets}
+    if "html" in formats:
+        html_offers = write_html_report(offers, context, output_dir / "practilizate.html")
+        result["html"] = {"offers": html_offers}
     sys.stdout.write(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
     return 0

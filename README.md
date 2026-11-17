@@ -2,9 +2,9 @@
 
 **Observatorio de prácticas preprofesionales del Perú.**
 
-Practilizate turns public internship listings into a reproducible data product: a validated PostgreSQL star schema, a Power BI dashboard, an Excel workbook, and a data quality report.
+Practilizate turns public internship listings into a reproducible data product: a validated PostgreSQL star schema, a Power BI dashboard, an Excel workbook, a portable HTML report, and a data quality report.
 
-> **Status:** v0.1.2 with a live snapshot (`live-20261029`). The PostgreSQL star schema, Excel workbook, bilingual Power BI report, and E2E artifacts are in the repository.
+> **Status:** v0.1.3 with a live snapshot (`live-20261029`). The PostgreSQL star schema, Excel workbook, bilingual Power BI report, offline HTML report, and E2E artifacts are in the repository.
 > **Español:** [README.es.md](README.es.md)
 
 ## Why Practilizate
@@ -29,6 +29,7 @@ The initial 73-offer analysis was limited to Systems Engineering in Lima. The pr
 - PostgreSQL star schema with career and skill bridges.
 - Power BI report with Spanish/English toggle.
 - Excel workbook in Spanish.
+- Portable offline HTML report with search, filters, and Spanish/English toggle.
 - Repeatable E2E test and artifact manifest.
 - Bilingual documentation.
 
@@ -51,6 +52,7 @@ practicas.pe
     |
     +--> [export] dashboard_dataset.csv
     +--> [export] practilizate.xlsx
+    +--> [export] practilizate.html
     +--> [powerbi] practilizate.pbip
 ```
 
@@ -64,11 +66,13 @@ practicas.pe
 
 ![Data quality report](docs/assets/quality-report.png)
 
+![Portable HTML report](docs/assets/html-report.png)
+
 - Dashboard (Spanish): `docs/assets/dashboard-es.png`
 - Dashboard (English): `docs/assets/dashboard-en.png`
 - Excel summary: `docs/assets/excel-summary.png`
 - Data quality report: `docs/assets/quality-report.png`
-- Power BI guide: [powerbi/README.md](powerbi/README.md)
+- Portable HTML report (aggregate view): `docs/assets/html-report.png`
 
 ## Data source and attribution
 
@@ -113,7 +117,9 @@ the public site's career filter (65 careers at the snapshot date).
 
 Open the GitHub release, the screenshots, and `powerbi/practilizate.pbip` in
 Power BI Desktop. The PBIP includes the report definition; save it as `.pbix`
-if you need a single portable file.
+if you need a single portable file. You can also open the generated
+`practilizate.html` in any browser; it is a single file with no external
+dependencies.
 
 **2. Run the pipeline locally**
 
@@ -122,6 +128,7 @@ best way to verify the installation. Use `--source live` for real listings.
 
 **3. Use the deliverables**
 
+- `data/processed/practilizate.html` — portable report with search, filters, and ES/EN toggle.
 - `data/processed/practilizate.xlsx` — Spanish workbook for students and career centers.
 - `data/processed/dashboard_dataset.csv` — Power BI/analyst snapshot.
 - `powerbi/practilizate.pbip` — bilingual report source.
@@ -129,11 +136,12 @@ best way to verify the installation. Use `--source live` for real listings.
 
 **4. Share it online**
 
-The current product is a local CLI + Power BI Desktop + Excel workflow, not a
-hosted web application. To share a dashboard with other people, publish the
-PBIP to a Power BI workspace (requires a Power BI account/license) or host a
-web application on top of the CSV/PostgreSQL data. The public repository
-publishes aggregated screenshots and evidence; the live CSV/Excel stay local.
+The HTML report is the lightest way to share the snapshot: send one file or
+host it on any static site; it needs no server, account, or internet connection.
+For interactive analysis, publish the PBIP to a Power BI workspace (requires a
+Power BI account/license) or build an application on top of the CSV/PostgreSQL
+data. The public repository publishes aggregated screenshots and evidence; the
+live CSV, Excel, and HTML stay local.
 
 **5. Automate a refresh**
 
@@ -149,7 +157,7 @@ Open `powerbi/practilizate.pbip` in Power BI Desktop and save it as `.pbix` if n
 - The model reads the snapshot through the `DataFolder` parameter; update it if the repository moves.
 - The six pages cover executive summary, skills, companies and compensation, deadlines, quality, and a bilingual help page.
 - The report includes an ES/EN toggle (`Idioma` table and DAX `SWITCH` measures), alt text, accessible colors, a source footer, and a `Limpiar filtros` button.
-- PostgreSQL is documented as an optional live source in [powerbi/README.md](powerbi/README.md).
+- PostgreSQL remains an optional live source for analysts who prefer SQL.
 
 ## Excel
 
@@ -162,6 +170,17 @@ The workbook is generated at `data/processed/practilizate.xlsx` and includes:
 - `Empresas`
 - `Calidad`
 - `Diccionario`
+
+## Portable HTML report
+
+Every run also writes `data/processed/practilizate.html`:
+
+- One self-contained file: inline CSS and JavaScript, no CDN or network calls.
+- Search by role, company, career, or skill; filter by career, status, and salary availability.
+- KPI cards, career and skill demand bars, offer cards with deadlines and salary.
+- Spanish/English toggle and a print-friendly layout for PDF export.
+- No requirement text, emails, or phone numbers; only public listing fields.
+- Regenerate it from an existing run with `python -m practilizate export --format html`.
 
 ## Testing
 
@@ -179,6 +198,7 @@ artifacts/e2e/
 ├─ database_load.json
 ├─ export_report.json
 ├─ practilizate.xlsx
+├─ practilizate.html
 ├─ dashboard_dataset.csv
 ├─ offer_careers.csv
 ├─ offer_skills.csv
@@ -211,32 +231,20 @@ The quality report flags 3 warning rules and no critical rule: R06 (1 offer with
 a deadline before publication), R14 (38 duplicate title + company + deadline
 groups), and R15 (113 offers with detailed requirements but no lexicon skill).
 Salary is published for 156 of 389 offers; averages exclude missing values and
-outliers above S/ 12,000. See [docs/fixtures.md](docs/fixtures.md) for the
-synthetic E2E contract and [docs/data-dictionary.md](docs/data-dictionary.md)
-for field definitions.
-
-## Nielsen heuristics
-
-The product follows the 10 usability heuristics in [docs/heuristics.md](docs/heuristics.md). Review evidence is complete in [docs/heuristics-review.md](docs/heuristics-review.md), using the screenshots above, the Excel workbook, the quality report, and the E2E manifest.
-
-## Data dictionary
-
-Field definitions for the star schema, CSV snapshot, quality report, and manifest are in [docs/data-dictionary.md](docs/data-dictionary.md).
+outliers above S/ 12,000. The Excel workbook includes a data dictionary sheet,
+and the HTML report shows the same aggregate metrics without raw requirement
+text.
 
 ## Project structure
 
 ```text
 practilizate/
-├─ AGENTS.md
-├─ SPECS.md
-├─ ROADMAP.md
 ├─ README.md
 ├─ README.es.md
-├─ CODESTYLE.md
 ├─ DATA_SOURCES.md
 ├─ NOTICE.md
 ├─ LICENSE
-├─ docs/
+├─ docs/assets/
 ├─ src/practilizate/
 ├─ sql/
 ├─ tests/e2e/

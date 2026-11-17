@@ -106,8 +106,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     export.add_argument(
         "--format",
-        default="excel,csv",
-        help="Comma-separated formats: excel,csv (default: excel,csv).",
+        default="excel,csv,html",
+        help="Comma-separated formats: excel,csv,html (default: excel,csv,html).",
     )
 
     return parser

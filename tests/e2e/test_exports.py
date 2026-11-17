@@ -4,6 +4,7 @@ import zipfile
 from pathlib import Path
 
 import openpyxl
+from bs4 import BeautifulSoup
 
 CSV_FIELDS = [
     "offer_id",
@@ -120,16 +121,80 @@ def test_excel_workbook_is_complete_and_well_formed(e2e_run: Path) -> None:
     assert workbook["Datos"]["B5"].value
 
 
+def test_html_report_is_portable_filterable_and_privacy_safe(e2e_run: Path) -> None:
+    path = e2e_run / "practilizate.html"
+    assert path.is_file()
+    raw = path.read_text(encoding="utf-8")
+    assert raw.startswith("<!doctype html>")
+
+    soup = BeautifulSoup(raw, "html.parser")
+    assert soup.html["lang"] == "es"
+    assert "Practilizate" in soup.title.string
+
+    payload = json.loads(soup.find("script", id="practilizate-data").string)
+    assert payload["run"]["id"] == "e2e"
+    assert payload["run"]["as_of"] == "2026-10-29"
+    assert payload["stats"] == {
+        "offers": 12,
+        "companies": 10,
+        "careers": 3,
+        "skills": 21,
+        "expiring_soon": 1,
+        "expired": 1,
+        "salary_count": 11,
+        "salary_average": 1123.5,
+    }
+    assert payload["careers"][:3] == [
+        {"name": "ADMINISTRACION", "count": 7},
+        {"name": "INGENIERIA DE SISTEMAS", "count": 5},
+        {"name": "ARQUITECTURA", "count": 1},
+    ]
+    assert payload["skills"][0] == {"name": "Excel", "count": 7}
+    assert len(payload["offers"]) == 12
+    assert all("requirements_text" not in offer for offer in payload["offers"])
+
+    assert "reclutamiento@example.com" not in raw
+    assert "999 111 222" not in raw
+
+    cards = soup.select("[data-offer]")
+    assert len(cards) == 12
+    assert {card["data-status"] for card in cards} == {
+        "active",
+        "expiring_soon",
+        "expired",
+        "unknown",
+    }
+    assert sum(1 for card in cards if card["data-salary"] == "1") == 11
+
+    for control in ("#q", "#career-filter", "#status-filter", "#salary-only", "#reset-filters"):
+        assert soup.select_one(control), control
+    assert {button["data-lang"] for button in soup.select("[data-lang]")} == {"es", "en"}
+    assert soup.select_one("#result-count")["aria-live"] == "polite"
+    assert soup.select_one("#empty-state")
+
+    assert "ADMINISTRACION" in soup.select_one("#careers-chart").get_text()
+    assert "Excel" in soup.select_one("#skills-chart").get_text()
+
+    assert not soup.find_all("script", src=True)
+    assert not soup.find_all("link", rel="stylesheet")
+    assert "cdn." not in raw.lower()
+    assert "practicas.pe" in soup.get_text()
+    assert "no está afiliado" in soup.get_text()
+
+
 def test_manifest_records_outputs(e2e_run: Path) -> None:
     manifest = json.loads((e2e_run / "run_manifest.json").read_text(encoding="utf-8"))
     assert manifest["status"] == "completed"
     assert manifest["quality"]["overall_score"] == 0.9427
     assert manifest["artifacts"]["dashboard_csv"] == "dashboard_dataset.csv"
     assert manifest["artifacts"]["excel"] == "practilizate.xlsx"
+    assert manifest["artifacts"]["html"] == "practilizate.html"
     assert manifest["outputs"]["dashboard_csv"].endswith("dashboard_dataset.csv")
     assert manifest["outputs"]["excel"].endswith("practilizate.xlsx")
+    assert manifest["outputs"]["html"].endswith("practilizate.html")
     assert manifest["stages"]["export"]["csv_rows"] == 12
     assert manifest["stages"]["export"]["excel_sheets"] == 8
+    assert manifest["stages"]["export"]["html_offers"] == 12
 
 
 def test_export_command_rebuilds_deliverables(e2e_run: Path) -> None:
@@ -145,14 +210,16 @@ def test_export_command_rebuilds_deliverables(e2e_run: Path) -> None:
         "--output-dir",
         str(output_dir),
         "--format",
-        "excel,csv",
+        "excel,csv,html",
     )
     assert result.returncode == 0, result.stderr
     summary = json.loads(result.stdout)
     assert summary["csv"]["rows"] == 12
     assert summary["excel"]["sheets"] == 8
+    assert summary["html"]["offers"] == 12
     assert (output_dir / "dashboard_dataset.csv").is_file()
     assert (output_dir / "practilizate.xlsx").is_file()
+    assert (output_dir / "practilizate.html").is_file()
 
 
 def test_e2e_artifacts_have_checksums(e2e_run: Path) -> None:
