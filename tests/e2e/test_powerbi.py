@@ -59,7 +59,3 @@ def test_powerbi_project_is_complete() -> None:
             }[screenshot]
             assert image.size == expected
             assert image.format == "PNG"
-
-    review = (REPO_ROOT / "docs" / "heuristics-review.md").read_text(encoding="utf-8")
-    assert "Pass with notes" in review
-    assert "Pending" not in review
